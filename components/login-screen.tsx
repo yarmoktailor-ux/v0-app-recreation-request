@@ -2,17 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { useApp } from '@/lib/context'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Eye, EyeOff } from 'lucide-react'
 
-interface LoginScreenProps {
-  onLogin: (password: string) => boolean
-  onSetPassword: (password: string) => void
-  currentPassword: string
-}
-
-export function LoginScreen({ onLogin, onSetPassword, currentPassword }: LoginScreenProps) {
+export function LoginScreen() {
+  const { login, setPassword } = useApp()
   const [mounted, setMounted] = useState(false)
   const [passwordInput, setPasswordInput] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -26,7 +22,7 @@ export function LoginScreen({ onLogin, onSetPassword, currentPassword }: LoginSc
   }, [])
 
   const handleLogin = () => {
-    if (onLogin(passwordInput)) {
+    if (login(passwordInput)) {
       setError('')
     } else {
       setError('كلمة السر غير صحيحة')
@@ -43,8 +39,8 @@ export function LoginScreen({ onLogin, onSetPassword, currentPassword }: LoginSc
       return
     }
     
-    onSetPassword(newPassword)
-    onLogin(newPassword)
+    setPassword(newPassword)
+    login(newPassword)
   }
 
   if (!mounted) {
@@ -52,7 +48,7 @@ export function LoginScreen({ onLogin, onSetPassword, currentPassword }: LoginSc
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-foreground" suppressHydrationWarning>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-foreground">
       {/* Logo */}
       <div className="w-24 h-24 relative mb-6">
         <Image
