@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from 'react'
-import { useApp, Client } from '@/lib/context'
+import { useState, useRef } from 'react'
+import { useApp, Client, Measurement } from '@/lib/context'
 import { 
   ArrowRight, 
   Search, 
@@ -10,7 +10,8 @@ import {
   Mail,
   Check,
   MoreVertical,
-  Users
+  Users,
+  X
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import {
@@ -27,6 +28,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from '@/components/ui/button'
+import { ClientInvoice, MeasurementInvoice } from './invoice'
 
 interface ClientsPageProps {
   onBack: () => void
@@ -35,7 +37,7 @@ interface ClientsPageProps {
 }
 
 export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPageProps) {
-  const { clients, deleteClient, updateMeasurementStatus, addPayment } = useApp()
+  const { clients, deleteClient, updateMeasurementStatus, addPayment, shopSettings } = useApp()
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [statusDialog, setStatusDialog] = useState<{ open: boolean; clientId: string; measurementId: string }>({ 
@@ -53,6 +55,18 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
     client: null 
   })
   const [selectedStatus, setSelectedStatus] = useState<'new' | 'in-progress' | 'ready' | 'delivered'>('new')
+  const [invoiceDialog, setInvoiceDialog] = useState<{ 
+    open: boolean; 
+    type: 'client' | 'measurement'; 
+    client: Client | null;
+    measurement: Measurement | null;
+  }>({ 
+    open: false, 
+    type: 'client', 
+    client: null,
+    measurement: null 
+  })
+  const invoiceRef = useRef<HTMLDivElement>(null)
 
   const filteredClients = clients.filter(client => 
     client.name.includes(searchQuery) || client.phone.includes(searchQuery)
@@ -107,6 +121,90 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
     if (measurement) {
       setSelectedStatus(measurement.status)
       setStatusDialog({ open: true, clientId: client.id, measurementId: measurement.id })
+    }
+  }
+
+  const openInvoiceDialog = (client: Client, type: 'client' | 'measurement') => {
+    const measurement = client.measurements[client.measurements.length - 1]
+    if (measurement) {
+      setInvoiceDialog({ open: true, type, client, measurement })
+    }
+  }
+
+  const handlePrint = () => {
+    if (invoiceRef.current) {
+      const printContent = invoiceRef.current.innerHTML
+      const printWindow = window.open('', '_blank')
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html dir="rtl" lang="ar">
+          <head>
+            <title>فاتورة</title>
+            <meta charset="UTF-8">
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { 
+                font-family: 'Cairo', 'Arial', sans-serif; 
+                padding: 20px;
+                direction: rtl;
+                color: #000;
+              }
+              .bg-white { background: white; }
+              .p-6 { padding: 1.5rem; }
+              .p-3 { padding: 0.75rem; }
+              .p-2 { padding: 0.5rem; }
+              .mb-6 { margin-bottom: 1.5rem; }
+              .mb-4 { margin-bottom: 1rem; }
+              .mb-3 { margin-bottom: 0.75rem; }
+              .mb-2 { margin-bottom: 0.5rem; }
+              .mb-1 { margin-bottom: 0.25rem; }
+              .mx-auto { margin-left: auto; margin-right: auto; }
+              .text-center { text-align: center; }
+              .text-xl { font-size: 1.25rem; }
+              .text-sm { font-size: 0.875rem; }
+              .text-xs { font-size: 0.75rem; }
+              .font-bold { font-weight: bold; }
+              .text-gray-500 { color: #6b7280; }
+              .text-gray-600 { color: #4b5563; }
+              .text-red-600 { color: #dc2626; }
+              .border { border: 1px solid #d1d5db; }
+              .border-gray-300 { border-color: #d1d5db; }
+              .border-gray-200 { border-color: #e5e7eb; }
+              .rounded { border-radius: 0.25rem; }
+              .space-y-3 > * + * { margin-top: 0.75rem; }
+              .grid { display: grid; }
+              .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+              .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+              .gap-2 { gap: 0.5rem; }
+              .flex { display: flex; }
+              .justify-between { justify-content: space-between; }
+              .justify-center { justify-content: center; }
+              .block { display: block; }
+              .w-20 { width: 5rem; }
+              .h-20 { height: 5rem; }
+              .max-w-md { max-width: 28rem; }
+              img { max-width: 100%; height: auto; object-fit: contain; }
+              .bg-gray-100 { background: #f3f4f6; }
+              .-mx-3 { margin-left: -0.75rem; margin-right: -0.75rem; }
+              .-mt-3 { margin-top: -0.75rem; }
+              @media print {
+                body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+              }
+            </style>
+          </head>
+          <body>
+            ${printContent}
+          </body>
+          </html>
+        `)
+        printWindow.document.close()
+        printWindow.focus()
+        setTimeout(() => {
+          printWindow.print()
+          printWindow.close()
+        }, 250)
+      }
     }
   }
 
@@ -185,7 +283,10 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
                       {latestMeasurement?.status === 'delivered' && (
                         <Check className="w-5 h-5 text-primary" />
                       )}
-                      <button className="p-1 text-primary">
+                      <button 
+                        className="p-1 text-primary"
+                        onClick={() => openInvoiceDialog(client, 'client')}
+                      >
                         <Printer className="w-5 h-5" />
                       </button>
                       <button className="p-1 text-primary">
@@ -204,8 +305,11 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
                           <DropdownMenuItem onClick={() => openStatusDialog(client)}>
                             نقل حالة العمل
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openInvoiceDialog(client, 'client')}>
                             طباعة الفاتورة للعميل
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openInvoiceDialog(client, 'measurement')}>
+                            طباعة فاتورة المقاسات
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             توصيل المبلغ المتبقى
@@ -338,6 +442,51 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
               نعم
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invoice Dialog */}
+      <Dialog open={invoiceDialog.open} onOpenChange={(open) => setInvoiceDialog({ ...invoiceDialog, open })}>
+        <DialogContent className="bg-white max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle>
+                {invoiceDialog.type === 'client' ? 'فاتورة العميل' : 'فاتورة المقاسات'}
+              </DialogTitle>
+              <div className="flex gap-2">
+                <Button onClick={handlePrint} size="sm" className="bg-primary text-primary-foreground">
+                  <Printer className="w-4 h-4 ml-2" />
+                  طباعة
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setInvoiceDialog({ ...invoiceDialog, open: false })}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="py-4">
+            {invoiceDialog.client && invoiceDialog.measurement && (
+              invoiceDialog.type === 'client' ? (
+                <ClientInvoice 
+                  ref={invoiceRef}
+                  client={invoiceDialog.client}
+                  measurement={invoiceDialog.measurement}
+                  shopSettings={shopSettings}
+                />
+              ) : (
+                <MeasurementInvoice 
+                  ref={invoiceRef}
+                  client={invoiceDialog.client}
+                  measurement={invoiceDialog.measurement}
+                  shopSettings={shopSettings}
+                />
+              )
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
