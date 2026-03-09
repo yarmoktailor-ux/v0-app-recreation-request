@@ -66,6 +66,15 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
     client: null,
     measurement: null 
   })
+  const [paymentDialog, setPaymentDialog] = useState<{ 
+    open: boolean; 
+    client: Client | null;
+    amount: string;
+  }>({ 
+    open: false, 
+    client: null,
+    amount: '' 
+  })
   const invoiceRef = useRef<HTMLDivElement>(null)
 
   const filteredClients = clients.filter(client => 
@@ -116,7 +125,18 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
     setDeliverDialog({ open: true, client, remaining })
   }
 
-  const openStatusDialog = (client: Client) => {
+  const openPaymentDialog = (client: Client) => {
+    const measurement = client.measurements.find(m => m.status !== 'delivered')
+    const remaining = measurement ? measurement.remaining : 0
+    setPaymentDialog({ open: true, client, amount: remaining.toString() })
+  }
+
+  const handlePayment = () => {
+    if (paymentDialog.client && paymentDialog.amount) {
+      addPayment(paymentDialog.client.id, parseFloat(paymentDialog.amount))
+      setPaymentDialog({ open: false, client: null, amount: '' })
+    }
+  }
     const measurement = client.measurements[0]
     if (measurement) {
       setSelectedStatus(measurement.status)
@@ -311,7 +331,7 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
                           <DropdownMenuItem onClick={() => openInvoiceDialog(client, 'measurement')}>
                             طباعة فاتورة المقاسات
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openPaymentDialog(client)}>
                             توصيل المبلغ المتبقى
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openDeliverDialog(client)}>
@@ -440,6 +460,38 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
             </Button>
             <Button onClick={handleDelete} variant="destructive">
               نعم
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Dialog */}
+      <Dialog open={paymentDialog.open} onOpenChange={(open) => setPaymentDialog({ ...paymentDialog, open })}>
+        <DialogContent className="bg-popover">
+          <DialogHeader>
+            <DialogTitle>توصيل المبلغ المتبقي</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div>
+              <label className="text-sm font-medium">اسم العميل: {paymentDialog.client?.name}</label>
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-2">المبلغ المتبقي</label>
+              <Input
+                type="text"
+                value={paymentDialog.amount}
+                onChange={(e) => setPaymentDialog({ ...paymentDialog, amount: e.target.value })}
+                className="w-full"
+                inputMode="decimal"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setPaymentDialog({ open: false, client: null, amount: '' })}>
+              إلغاء
+            </Button>
+            <Button onClick={handlePayment} className="bg-primary text-primary-foreground">
+              توصيل
             </Button>
           </DialogFooter>
         </DialogContent>
