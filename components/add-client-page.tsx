@@ -356,7 +356,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
             <div className="bg-card border border-border rounded-lg p-3">
               <label className="text-xs text-muted-foreground block mb-1">الكمية</label>
               <Input
-                type="number"
+                type="text"
                 value={formData.quantity}
                 onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
                 className="border-0 bg-transparent h-8"
@@ -379,7 +379,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
             <div className="bg-card border border-border rounded-lg p-3">
               <label className="text-xs text-muted-foreground block mb-1">المبلغ</label>
               <Input
-                type="number"
+                type="text"
                 value={formData.price || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
                 className="border-0 bg-transparent h-8"
@@ -389,7 +389,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
             <div className="bg-card border border-border rounded-lg p-3">
               <label className="text-xs text-muted-foreground block mb-1">المدفوع</label>
               <Input
-                type="number"
+                type="text"
                 value={formData.paid || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, paid: parseFloat(e.target.value) || 0 }))}
                 className="border-0 bg-transparent h-8"
@@ -403,7 +403,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
             <div className="bg-card border border-border rounded-lg p-3">
               <label className="text-xs text-muted-foreground block mb-1">الضريبة المضافة (%)</label>
               <Input
-                type="number"
+                type="text"
                 value={formData.tax || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, tax: parseFloat(e.target.value) || 0 }))}
                 className="border-0 bg-transparent h-8"
@@ -414,7 +414,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
               <label className="text-xs text-muted-foreground block mb-1">الخصم</label>
               <div className="flex gap-2">
                 <Input
-                  type="number"
+                  type="text"
                   value={formData.discount || ''}
                   onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
                   className="border-0 bg-transparent h-8 flex-1"
