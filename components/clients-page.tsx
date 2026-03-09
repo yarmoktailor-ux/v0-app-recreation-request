@@ -137,13 +137,15 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
       setPaymentDialog({ open: false, client: null, amount: '' })
     }
   }
+
+  const openStatusDialog = (client: Client) => {
     const measurement = client.measurements[0]
     if (measurement) {
       setSelectedStatus(measurement.status)
       setStatusDialog({ open: true, clientId: client.id, measurementId: measurement.id })
     }
   }
-
+  
   const openInvoiceDialog = (client: Client, type: 'client' | 'measurement') => {
     const measurement = client.measurements[client.measurements.length - 1]
     if (measurement) {
