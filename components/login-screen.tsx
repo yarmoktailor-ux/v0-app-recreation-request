@@ -55,7 +55,7 @@ export function LoginScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-foreground">
       {/* Logo */}
       <div className="mb-8">
         <div className="w-32 h-32 relative">

@@ -161,7 +161,7 @@ export function HomeScreen() {
         </div>
 
         {/* Urgent Deliveries Warning */}
-        <div className="w-full max-w-sm mt-8 bg-card rounded-lg border border-border p-4">
+        <div className="w-full max-w-sm mt-8 bg-card rounded-lg border border-border p-4 text-foreground">
           <div className="flex items-center gap-2 text-primary mb-3">
             <AlertTriangle className="w-5 h-5" />
             <span className="font-bold">موعد تسليمها بعد أقل من 5 أيام ولم تنجز</span>
