@@ -105,6 +105,7 @@ const DEFAULT_SHOP_SETTINGS: ShopSettings = {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPasswordState] = useState(DEFAULT_PASSWORD)
   const [biometricEnabled, setBiometricEnabled] = useState(false)
@@ -120,33 +121,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
     pockets: []
   })
 
+  // Mark as mounted on client
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Load from localStorage
   useEffect(() => {
+    if (!mounted) return
     const savedData = localStorage.getItem('yarmouk-app-data')
     if (savedData) {
-      const data = JSON.parse(savedData)
-      setPassword(data.password || DEFAULT_PASSWORD)
-      setBiometricEnabled(data.biometricEnabled || false)
-      setClients(data.clients || [])
-      setShopSettings(data.shopSettings || DEFAULT_SHOP_SETTINGS)
-      setFabricTypes(data.fabricTypes || [])
-      setOptionLists(data.optionLists || optionLists)
+      try {
+        const data = JSON.parse(savedData)
+        setPasswordState(data.password || DEFAULT_PASSWORD)
+        setBiometricEnabled(data.biometricEnabled || false)
+        setClients(data.clients || [])
+        setShopSettings(data.shopSettings || DEFAULT_SHOP_SETTINGS)
+        setFabricTypes(data.fabricTypes || [])
+        setOptionLists(data.optionLists || {
+          neckType: [],
+          jabzor: [],
+          hand: [],
+          button: [],
+          tailoringType: [],
+          pockets: []
+        })
+      } catch {
+        // Invalid data, use defaults
+      }
     }
-  }, [])
+  }, [mounted])
 
   // Save to localStorage
   useEffect(() => {
-    if (clients.length > 0 || password !== DEFAULT_PASSWORD) {
-      localStorage.setItem('yarmouk-app-data', JSON.stringify({
-        password,
-        biometricEnabled,
-        clients,
-        shopSettings,
-        fabricTypes,
-        optionLists
-      }))
-    }
-  }, [password, biometricEnabled, clients, shopSettings, fabricTypes, optionLists])
+    if (!mounted) return
+    localStorage.setItem('yarmouk-app-data', JSON.stringify({
+      password,
+      biometricEnabled,
+      clients,
+      shopSettings,
+      fabricTypes,
+      optionLists
+    }))
+  }, [mounted, password, biometricEnabled, clients, shopSettings, fabricTypes, optionLists])
 
   // Auth functions
   const login = (inputPassword: string) => {
