@@ -15,13 +15,16 @@ function AppContent() {
 
   if (!mounted) {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
-        background: '#ffffff', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center' 
-      }}>
+      <div 
+        style={{ 
+          minHeight: '100vh', 
+          background: '#ffffff', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center' 
+        }}
+        suppressHydrationWarning
+      >
         <div style={{ 
           width: 48, 
           height: 48, 
@@ -34,7 +37,11 @@ function AppContent() {
     )
   }
 
-  return isAuthenticated ? <HomeScreen /> : <LoginScreen />
+  return (
+    <div suppressHydrationWarning>
+      {isAuthenticated ? <HomeScreen /> : <LoginScreen />}
+    </div>
+  )
 }
 
 export default function Home() {
