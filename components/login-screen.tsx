@@ -2,13 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { useApp } from '@/lib/context'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Eye, EyeOff, Lock } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 
-export function LoginScreen() {
-  const { login, setPassword } = useApp()
+interface LoginScreenProps {
+  onLogin: (password: string) => boolean
+  onSetPassword: (password: string) => void
+  currentPassword: string
+}
+
+export function LoginScreen({ onLogin, onSetPassword, currentPassword }: LoginScreenProps) {
   const [mounted, setMounted] = useState(false)
   const [passwordInput, setPasswordInput] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -22,7 +26,7 @@ export function LoginScreen() {
   }, [])
 
   const handleLogin = () => {
-    if (login(passwordInput)) {
+    if (onLogin(passwordInput)) {
       setError('')
     } else {
       setError('كلمة السر غير صحيحة')
@@ -39,139 +43,124 @@ export function LoginScreen() {
       return
     }
     
-    setPassword(newPassword)
-    login(newPassword)
+    onSetPassword(newPassword)
+    onLogin(newPassword)
   }
 
   if (!mounted) {
-    return (
-      <div style={{ 
-        minHeight: '100vh', 
-        background: '#ffffff', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center' 
-      }}>
-        <div style={{ 
-          width: 48, 
-          height: 48, 
-          border: '4px solid #d4af37', 
-          borderTopColor: 'transparent', 
-          borderRadius: '50%', 
-          animation: 'spin 0.8s linear infinite' 
-        }} />
-      </div>
-    )
+    return null
   }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-foreground" suppressHydrationWarning>
-      <div className="mb-8">
-        <div className="w-32 h-32 relative">
-          <Image
-            src="/logo.png"
-            alt="شعار اليرموك"
-            fill
-            className="object-contain"
-            priority
-          />
-        </div>
+      {/* Logo */}
+      <div className="w-24 h-24 relative mb-6">
+        <Image
+          src="/logo.png"
+          alt="اليرموك"
+          fill
+          className="object-contain"
+          priority
+        />
       </div>
 
       <h1 className="text-3xl font-bold text-primary mb-2">اليرموك</h1>
       <p className="text-muted-foreground mb-8">خياطة وتفصيل</p>
 
-      {!isSettingUp ? (
-        <>
-          <div className="w-full max-w-xs mb-4">
-            <div className="relative">
-              <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="كلمة السر"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                className="pr-10 pl-10 h-12 bg-input text-foreground border-border"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-3 top-1/2 -translate-y-1/2"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <Eye className="w-5 h-5 text-muted-foreground" />
-                )}
-              </button>
-            </div>
+      {/* Setup Mode */}
+      {isSettingUp ? (
+        <div className="w-full max-w-sm space-y-4">
+          <h2 className="text-xl font-bold text-center mb-6">إنشاء حساب جديد</h2>
+
+          <div className="bg-card border border-border rounded-lg p-4">
+            <Input
+              type="text"
+              placeholder="كلمة السر الجديدة"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full"
+              inputMode="numeric"
+            />
           </div>
 
-          {error && (
-            <p className="text-destructive text-sm mb-4">{error}</p>
-          )}
+          <div className="bg-card border border-border rounded-lg p-4">
+            <Input
+              type="text"
+              placeholder="تأكيد كلمة السر"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full"
+              inputMode="numeric"
+            />
+          </div>
+
+          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
           <Button
+            onClick={handleSetupPassword}
+            className="w-full bg-primary text-primary-foreground"
+          >
+            حفظ
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => {
+              setIsSettingUp(false)
+              setError('')
+              setNewPassword('')
+              setConfirmPassword('')
+            }}
+            className="w-full"
+          >
+            إلغاء
+          </Button>
+        </div>
+      ) : (
+        <div className="w-full max-w-sm space-y-4">
+          {/* Password Input */}
+          <div className="bg-card border border-border rounded-lg p-4 flex items-center gap-3">
+            <span className="text-primary">🔒</span>
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="كلمة السر"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              className="border-0 bg-transparent"
+              inputMode="numeric"
+              autoFocus
+            />
+            <button
+              onClick={() => setShowPassword(!showPassword)}
+              className="p-1 text-muted-foreground"
+            >
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+
+          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+
+          {/* Login Button */}
+          <Button
             onClick={handleLogin}
-            className="w-full max-w-xs h-12 bg-primary text-primary-foreground hover:bg-primary/90 mb-6"
+            className="w-full bg-primary text-primary-foreground"
           >
             دخول
           </Button>
 
+          {/* Setup Link */}
           <button
             onClick={() => setIsSettingUp(true)}
-            className="mt-8 text-muted-foreground text-sm hover:text-primary"
+            className="mt-8 text-muted-foreground text-sm hover:text-primary w-full"
           >
             إنشاء حساب جديد
           </button>
-        </>
-      ) : (
-        <>
-          <div className="w-full max-w-xs space-y-4">
-            <div className="relative">
-              <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                type="password"
-                placeholder="كلمة السر الجديدة"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="pr-10 h-12 bg-input text-foreground border-border"
-              />
-            </div>
-            <div className="relative">
-              <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                type="password"
-                placeholder="تأكيد كلمة السر"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="pr-10 h-12 bg-input text-foreground border-border"
-              />
-            </div>
-
-            {error && (
-              <p className="text-destructive text-sm">{error}</p>
-            )}
-
-            <Button
-              onClick={handleSetupPassword}
-              className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              إنشاء الحساب
-            </Button>
-
-            <button
-              onClick={() => {
-                setIsSettingUp(false)
-                setError('')
-              }}
-              className="w-full text-muted-foreground text-sm hover:text-primary"
-            >
-              رجوع
-            </button>
-          </div>
-        </>
+        </div>
       )}
     </div>
   )
