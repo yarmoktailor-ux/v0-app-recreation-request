@@ -53,11 +53,9 @@ interface AppContextType {
   // Auth
   isAuthenticated: boolean
   password: string
-  biometricEnabled: boolean
   login: (password: string) => boolean
   logout: () => void
   setPassword: (password: string) => void
-  enableBiometric: (enabled: boolean) => void
   
   // Clients
   clients: Client[]
@@ -108,7 +106,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPasswordState] = useState(DEFAULT_PASSWORD)
-  const [biometricEnabled, setBiometricEnabled] = useState(false)
   const [clients, setClients] = useState<Client[]>([])
   const [shopSettings, setShopSettings] = useState<ShopSettings>(DEFAULT_SHOP_SETTINGS)
   const [fabricTypes, setFabricTypes] = useState<string[]>([])
@@ -134,7 +131,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const data = JSON.parse(savedData)
         setPasswordState(data.password || DEFAULT_PASSWORD)
-        setBiometricEnabled(data.biometricEnabled || false)
         setClients(data.clients || [])
         setShopSettings(data.shopSettings || DEFAULT_SHOP_SETTINGS)
         setFabricTypes(data.fabricTypes || [])
@@ -157,13 +153,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!mounted) return
     localStorage.setItem('yarmouk-app-data', JSON.stringify({
       password,
-      biometricEnabled,
       clients,
       shopSettings,
       fabricTypes,
       optionLists
     }))
-  }, [mounted, password, biometricEnabled, clients, shopSettings, fabricTypes, optionLists])
+  }, [mounted, password, clients, shopSettings, fabricTypes, optionLists])
 
   // Auth functions
   const login = (inputPassword: string) => {
@@ -180,10 +175,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setPassword = (newPassword: string) => {
     setPasswordState(newPassword)
-  }
-
-  const enableBiometric = (enabled: boolean) => {
-    setBiometricEnabled(enabled)
   }
 
   // Client functions
@@ -308,11 +299,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{
       isAuthenticated,
       password,
-      biometricEnabled,
       login,
       logout,
       setPassword,
-      enableBiometric,
       clients,
       addClient,
       updateClient,
