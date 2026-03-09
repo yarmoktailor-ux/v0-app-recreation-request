@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Fingerprint, Eye, EyeOff, Lock } from 'lucide-react'
 
 export function LoginScreen() {
-  const { login, biometricEnabled, enableBiometric } = useApp()
+  const { login, biometricEnabled, enableBiometric, setPassword, password } = useApp()
   const [mounted, setMounted] = useState(false)
   const [passwordInput, setPasswordInput] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -30,22 +30,89 @@ export function LoginScreen() {
   }
 
   const handleBiometricLogin = async () => {
-    // Web Biometric API simulation
-    // In a real app, you would use the Web Authentication API
-    if (biometricEnabled) {
-      try {
-        // Simulate biometric authentication
-        const result = window.confirm('هل تريد الدخول عن طريق البصمة؟')
-        if (result) {
-          login('1234') // Default password for biometric
+    if (!biometricEnabled) {
+      setError('يرجى تفعيل البصمة أولاً من إعدادات الحساب')
+      return
+    }
+
+    try {
+      // Check if Web Authentication API is available
+      if (window.PublicKeyCredential) {
+        const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+        if (available) {
+          // Use Web Authentication API for biometric
+          const credential = await navigator.credentials.get({
+            publicKey: {
+              challenge: new Uint8Array(32),
+              timeout: 60000,
+              userVerification: 'required',
+              rpId: window.location.hostname,
+            }
+          }).catch(() => null)
+
+          if (credential) {
+            login(password)
+            return
+          }
         }
-      } catch {
-        setError('فشل التحقق من البصمة')
       }
+
+      // Fallback: Use simple confirmation for browsers without WebAuthn
+      const result = window.confirm('هل تريد الدخول عن طريق البصمة؟')
+      if (result) {
+        login(password)
+      }
+    } catch {
+      setError('فشل التحقق من البصمة')
     }
   }
 
-  const handleSetupPassword = () => {
+  const handleEnableBiometric = async () => {
+    try {
+      // Check if Web Authentication API is available
+      if (window.PublicKeyCredential) {
+        const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+        if (available) {
+          // Register biometric credential
+          const credential = await navigator.credentials.create({
+            publicKey: {
+              challenge: new Uint8Array(32),
+              rp: { name: 'اليرموك', id: window.location.hostname },
+              user: {
+                id: new Uint8Array(16),
+                name: 'user@yarmouk.app',
+                displayName: 'مستخدم اليرموك'
+              },
+              pubKeyCredParams: [
+                { alg: -7, type: 'public-key' },
+                { alg: -257, type: 'public-key' }
+              ],
+              authenticatorSelection: {
+                authenticatorAttachment: 'platform',
+                userVerification: 'required'
+              },
+              timeout: 60000,
+            }
+          }).catch(() => null)
+
+          if (credential) {
+            enableBiometric(true)
+            setError('')
+            return true
+          }
+        }
+      }
+
+      // Fallback: Enable biometric without actual registration
+      enableBiometric(true)
+      return true
+    } catch {
+      setError('فشل تفعيل البصمة')
+      return false
+    }
+  }
+
+  const handleSetupPassword = async () => {
     if (newPassword.length < 4) {
       setError('كلمة السر يجب أن تكون 4 أرقام على الأقل')
       return
@@ -54,8 +121,16 @@ export function LoginScreen() {
       setError('كلمة السر غير متطابقة')
       return
     }
-    // Save password and enable biometric
-    enableBiometric(true)
+    
+    // Save the new password
+    setPassword(newPassword)
+    
+    // Ask to enable biometric
+    const wantBiometric = window.confirm('هل تريد تفعيل الدخول عن طريق البصمة؟')
+    if (wantBiometric) {
+      await handleEnableBiometric()
+    }
+    
     login(newPassword)
   }
 
