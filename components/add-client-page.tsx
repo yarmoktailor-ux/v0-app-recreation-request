@@ -218,6 +218,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
         value={formData.measurements[fieldKey] || ''}
         onChange={(e) => handleMeasurementChange(fieldKey, e.target.value)}
         className="h-8 bg-card border-0 text-center"
+        inputMode="decimal"
       />
     </div>
   )
@@ -312,6 +313,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               className="border-0 bg-transparent text-foreground placeholder:text-muted-foreground"
+              autoFocus
             />
           </div>
 
@@ -358,6 +360,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
                 value={formData.quantity}
                 onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
                 className="border-0 bg-transparent h-8"
+                inputMode="numeric"
               />
             </div>
             <div className="bg-card border border-border rounded-lg p-3">
@@ -380,6 +383,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
                 value={formData.price || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
                 className="border-0 bg-transparent h-8"
+                inputMode="decimal"
               />
             </div>
             <div className="bg-card border border-border rounded-lg p-3">
@@ -389,6 +393,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
                 value={formData.paid || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, paid: parseFloat(e.target.value) || 0 }))}
                 className="border-0 bg-transparent h-8"
+                inputMode="decimal"
               />
             </div>
           </div>
@@ -402,6 +407,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
                 value={formData.tax || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, tax: parseFloat(e.target.value) || 0 }))}
                 className="border-0 bg-transparent h-8"
+                inputMode="decimal"
               />
             </div>
             <div className="bg-card border border-border rounded-lg p-3">
@@ -412,6 +418,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
                   value={formData.discount || ''}
                   onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
                   className="border-0 bg-transparent h-8 flex-1"
+                  inputMode="decimal"
                 />
                 <Select 
                   value={formData.discountType} 
@@ -467,12 +474,14 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
                     value={formData.measurements['sleeveS'] || ''}
                     onChange={(e) => handleMeasurementChange('sleeveS', e.target.value)}
                     className="h-6 bg-card border-0 text-center text-xs"
+                    inputMode="decimal"
                   />
                   <Input
                     placeholder="ك"
                     value={formData.measurements['sleeveK'] || ''}
                     onChange={(e) => handleMeasurementChange('sleeveK', e.target.value)}
                     className="h-6 bg-card border-0 text-center text-xs"
+                    inputMode="decimal"
                   />
                 </div>
               </div>
@@ -500,12 +509,14 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
                     value={formData.measurements['cuffS'] || ''}
                     onChange={(e) => handleMeasurementChange('cuffS', e.target.value)}
                     className="h-6 bg-card border-0 text-center text-xs"
+                    inputMode="decimal"
                   />
                   <Input
                     placeholder="ك"
                     value={formData.measurements['cuffK'] || ''}
                     onChange={(e) => handleMeasurementChange('cuffK', e.target.value)}
                     className="h-6 bg-card border-0 text-center text-xs"
+                    inputMode="decimal"
                   />
                 </div>
               </div>
@@ -522,12 +533,14 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
                     value={formData.measurements['jointS'] || ''}
                     onChange={(e) => handleMeasurementChange('jointS', e.target.value)}
                     className="h-6 bg-card border-0 text-center text-xs"
+                    inputMode="decimal"
                   />
                   <Input
                     placeholder="ك"
                     value={formData.measurements['jointK'] || ''}
                     onChange={(e) => handleMeasurementChange('jointK', e.target.value)}
                     className="h-6 bg-card border-0 text-center text-xs"
+                    inputMode="decimal"
                   />
                 </div>
               </div>
