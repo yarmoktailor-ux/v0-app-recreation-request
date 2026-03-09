@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useApp } from '@/lib/context'
 import { Input } from '@/components/ui/input'
@@ -9,12 +9,17 @@ import { Fingerprint, Eye, EyeOff, Lock } from 'lucide-react'
 
 export function LoginScreen() {
   const { login, biometricEnabled, enableBiometric } = useApp()
+  const [mounted, setMounted] = useState(false)
   const [passwordInput, setPasswordInput] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isSettingUp, setIsSettingUp] = useState(false)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleLogin = () => {
     if (login(passwordInput)) {
@@ -52,6 +57,27 @@ export function LoginScreen() {
     // Save password and enable biometric
     enableBiometric(true)
     login(newPassword)
+  }
+
+  if (!mounted) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        background: '#ffffff', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center' 
+      }}>
+        <div style={{ 
+          width: 48, 
+          height: 48, 
+          border: '4px solid #d4af37', 
+          borderTopColor: 'transparent', 
+          borderRadius: '50%', 
+          animation: 'spin 0.8s linear infinite' 
+        }} />
+      </div>
+    )
   }
 
   return (
