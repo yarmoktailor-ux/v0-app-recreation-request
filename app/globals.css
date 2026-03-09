@@ -132,6 +132,10 @@
   input, textarea, select {
     direction: rtl;
     text-align: right;
-    color: #111111;
+    color: #000000 !important;
+    background-color: #ffffff;
+  }
+  input::placeholder, textarea::placeholder {
+    color: #666666;
   }
 }
