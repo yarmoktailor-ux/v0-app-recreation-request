@@ -5,10 +5,10 @@ import Image from 'next/image'
 import { useApp } from '@/lib/context'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Fingerprint, Eye, EyeOff, Lock } from 'lucide-react'
+import { Eye, EyeOff, Lock } from 'lucide-react'
 
 export function LoginScreen() {
-  const { login, biometricEnabled, enableBiometric, setPassword, password } = useApp()
+  const { login, setPassword } = useApp()
   const [mounted, setMounted] = useState(false)
   const [passwordInput, setPasswordInput] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -29,90 +29,7 @@ export function LoginScreen() {
     }
   }
 
-  const handleBiometricLogin = async () => {
-    if (!biometricEnabled) {
-      setError('يرجى تفعيل البصمة أولاً من إعدادات الحساب')
-      return
-    }
-
-    try {
-      // Check if Web Authentication API is available
-      if (window.PublicKeyCredential) {
-        const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-        if (available) {
-          // Use Web Authentication API for biometric
-          const credential = await navigator.credentials.get({
-            publicKey: {
-              challenge: new Uint8Array(32),
-              timeout: 60000,
-              userVerification: 'required',
-              rpId: window.location.hostname,
-            }
-          }).catch(() => null)
-
-          if (credential) {
-            login(password)
-            return
-          }
-        }
-      }
-
-      // Fallback: Use simple confirmation for browsers without WebAuthn
-      const result = window.confirm('هل تريد الدخول عن طريق البصمة؟')
-      if (result) {
-        login(password)
-      }
-    } catch {
-      setError('فشل التحقق من البصمة')
-    }
-  }
-
-  const handleEnableBiometric = async () => {
-    try {
-      // Check if Web Authentication API is available
-      if (window.PublicKeyCredential) {
-        const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-        if (available) {
-          // Register biometric credential
-          const credential = await navigator.credentials.create({
-            publicKey: {
-              challenge: new Uint8Array(32),
-              rp: { name: 'اليرموك', id: window.location.hostname },
-              user: {
-                id: new Uint8Array(16),
-                name: 'user@yarmouk.app',
-                displayName: 'مستخدم اليرموك'
-              },
-              pubKeyCredParams: [
-                { alg: -7, type: 'public-key' },
-                { alg: -257, type: 'public-key' }
-              ],
-              authenticatorSelection: {
-                authenticatorAttachment: 'platform',
-                userVerification: 'required'
-              },
-              timeout: 60000,
-            }
-          }).catch(() => null)
-
-          if (credential) {
-            enableBiometric(true)
-            setError('')
-            return true
-          }
-        }
-      }
-
-      // Fallback: Enable biometric without actual registration
-      enableBiometric(true)
-      return true
-    } catch {
-      setError('فشل تفعيل البصمة')
-      return false
-    }
-  }
-
-  const handleSetupPassword = async () => {
+  const handleSetupPassword = () => {
     if (newPassword.length < 4) {
       setError('كلمة السر يجب أن تكون 4 أرقام على الأقل')
       return
@@ -122,15 +39,7 @@ export function LoginScreen() {
       return
     }
     
-    // Save the new password
     setPassword(newPassword)
-    
-    // Ask to enable biometric
-    const wantBiometric = window.confirm('هل تريد تفعيل الدخول عن طريق البصمة؟')
-    if (wantBiometric) {
-      await handleEnableBiometric()
-    }
-    
     login(newPassword)
   }
 
@@ -157,7 +66,6 @@ export function LoginScreen() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-foreground" suppressHydrationWarning>
-      {/* Logo */}
       <div className="mb-8">
         <div className="w-32 h-32 relative">
           <Image
@@ -170,13 +78,11 @@ export function LoginScreen() {
         </div>
       </div>
 
-      {/* App Name */}
       <h1 className="text-3xl font-bold text-primary mb-2">اليرموك</h1>
       <p className="text-muted-foreground mb-8">خياطة وتفصيل</p>
 
       {!isSettingUp ? (
         <>
-          {/* Password Input */}
           <div className="w-full max-w-xs mb-4">
             <div className="relative">
               <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -206,7 +112,6 @@ export function LoginScreen() {
             <p className="text-destructive text-sm mb-4">{error}</p>
           )}
 
-          {/* Login Button */}
           <Button
             onClick={handleLogin}
             className="w-full max-w-xs h-12 bg-primary text-primary-foreground hover:bg-primary/90 mb-6"
@@ -214,20 +119,6 @@ export function LoginScreen() {
             دخول
           </Button>
 
-          {/* Biometric Login */}
-          <div className="text-center">
-            <button
-              onClick={handleBiometricLogin}
-              className="flex flex-col items-center gap-2 text-primary hover:opacity-80 transition-opacity"
-            >
-              <div className="w-16 h-16 rounded-full border-2 border-primary flex items-center justify-center">
-                <Fingerprint className="w-10 h-10" />
-              </div>
-              <span className="text-sm">دخول عن طريق البصمة</span>
-            </button>
-          </div>
-
-          {/* Setup Link */}
           <button
             onClick={() => setIsSettingUp(true)}
             className="mt-8 text-muted-foreground text-sm hover:text-primary"
@@ -237,7 +128,6 @@ export function LoginScreen() {
         </>
       ) : (
         <>
-          {/* Setup Password */}
           <div className="w-full max-w-xs space-y-4">
             <div className="relative">
               <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
