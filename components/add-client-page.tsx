@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { KhaleejiMeasurements } from '@/components/khaleeji-measurements'
 
 interface AddClientPageProps {
   onBack: () => void
@@ -443,191 +444,20 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
           </div>
 
           {/* Tab Content - Measurements */}
-          <TabsContent value="khaleeji" className="mt-0 space-y-4">
-            {/* Tailoring Type */}
-            <div className="bg-card border border-border rounded-lg p-3">
-              <label className="text-sm font-bold block mb-2 text-center">نوع التفصيل</label>
-              <div className="flex justify-center gap-4">
-                {['سعودي', 'قطري', 'اماراتي', 'كويتي'].map((type) => (
-                  <label key={type} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.tailoringType.includes(type)}
-                      onChange={() => handleTailoringTypeToggle(type)}
-                      className="w-5 h-5 accent-primary"
-                    />
-                    <span className="text-sm">{type}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Basic Measurements */}
-            <div className="grid grid-cols-3 gap-2">
-              <MeasurementField label="الطول" fieldKey="length" />
-              <MeasurementField label="الكتف" fieldKey="shoulder" />
-              <div className="bg-secondary rounded p-2">
-                <label className="text-xs text-muted-foreground block mb-1">طول الكم</label>
-                <div className="grid grid-cols-2 gap-1">
-                  <Input
-                    placeholder="س"
-                    value={formData.measurements['sleeveS'] || ''}
-                    onChange={(e) => handleMeasurementChange('sleeveS', e.target.value)}
-                    className="h-6 bg-card border-0 text-center text-xs"
-                    inputMode="decimal"
-                  />
-                  <Input
-                    placeholder="ك"
-                    value={formData.measurements['sleeveK'] || ''}
-                    onChange={(e) => handleMeasurementChange('sleeveK', e.target.value)}
-                    className="h-6 bg-card border-0 text-center text-xs"
-                    inputMode="decimal"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Chest Measurements */}
-            <div className="bg-card border border-border rounded-lg p-3">
-              <label className="text-sm font-bold block mb-2 text-center bg-secondary rounded py-1">وسع الصدر</label>
-              <div className="grid grid-cols-3 gap-2">
-                <MeasurementField label="صدر" fieldKey="chest" />
-                <MeasurementField label="وسط" fieldKey="waist" />
-                <MeasurementField label="HP" fieldKey="hp" />
-              </div>
-            </div>
-
-            {/* More Measurements */}
-            <div className="grid grid-cols-3 gap-2">
-              <MeasurementField label="رقبة" fieldKey="neck" />
-              <MeasurementField label="مودا" fieldKey="moda" />
-              <div className="bg-secondary rounded p-2">
-                <label className="text-xs text-muted-foreground block mb-1">الكبك</label>
-                <div className="grid grid-cols-2 gap-1">
-                  <Input
-                    placeholder="س"
-                    value={formData.measurements['cuffS'] || ''}
-                    onChange={(e) => handleMeasurementChange('cuffS', e.target.value)}
-                    className="h-6 bg-card border-0 text-center text-xs"
-                    inputMode="decimal"
-                  />
-                  <Input
-                    placeholder="ك"
-                    value={formData.measurements['cuffK'] || ''}
-                    onChange={(e) => handleMeasurementChange('cuffK', e.target.value)}
-                    className="h-6 bg-card border-0 text-center text-xs"
-                    inputMode="decimal"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <MeasurementField label="كفة اسفل" fieldKey="bottomCuff" />
-              <MeasurementField label="وسع اسفل" fieldKey="bottomWidth" />
-              <div className="bg-secondary rounded p-2">
-                <label className="text-xs text-muted-foreground block mb-1">مفصل</label>
-                <div className="grid grid-cols-2 gap-1">
-                  <Input
-                    placeholder="س"
-                    value={formData.measurements['jointS'] || ''}
-                    onChange={(e) => handleMeasurementChange('jointS', e.target.value)}
-                    className="h-6 bg-card border-0 text-center text-xs"
-                    inputMode="decimal"
-                  />
-                  <Input
-                    placeholder="ك"
-                    value={formData.measurements['jointK'] || ''}
-                    onChange={(e) => handleMeasurementChange('jointK', e.target.value)}
-                    className="h-6 bg-card border-0 text-center text-xs"
-                    inputMode="decimal"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Detail Options */}
-            <div className="grid grid-cols-3 gap-2">
-              <OptionSelector 
-                label="الرقبة" 
-                listName="neckType" 
-                value={formData.details['neckType']?.[0] || ''}
-                onChange={(v) => setFormData(prev => ({ 
-                  ...prev, 
-                  details: { ...prev.details, neckType: [v] }
-                }))}
-              />
-              <OptionSelector 
-                label="الجبزور" 
-                listName="jabzor" 
-                value={formData.details['jabzor']?.[0] || ''}
-                onChange={(v) => setFormData(prev => ({ 
-                  ...prev, 
-                  details: { ...prev.details, jabzor: [v] }
-                }))}
-              />
-              <OptionSelector 
-                label="اليد" 
-                listName="hand" 
-                value={formData.details['hand']?.[0] || ''}
-                onChange={(v) => setFormData(prev => ({ 
-                  ...prev, 
-                  details: { ...prev.details, hand: [v] }
-                }))}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <OptionSelector 
-                label="الجيوب" 
-                listName="pockets" 
-                value={formData.details['pockets']?.[0] || ''}
-                onChange={(v) => setFormData(prev => ({ 
-                  ...prev, 
-                  details: { ...prev.details, pockets: [v] }
-                }))}
-              />
-              <OptionSelector 
-                label="نوع التفصيل" 
-                listName="tailoringType" 
-                value={formData.details['tailoringTypeDetail']?.[0] || ''}
-                onChange={(v) => setFormData(prev => ({ 
-                  ...prev, 
-                  details: { ...prev.details, tailoringTypeDetail: [v] }
-                }))}
-              />
-              <OptionSelector 
-                label="الزرار" 
-                listName="button" 
-                value={formData.details['button']?.[0] || ''}
-                onChange={(v) => setFormData(prev => ({ 
-                  ...prev, 
-                  details: { ...prev.details, button: [v] }
-                }))}
-              />
-            </div>
-
-            {/* Notes */}
-            <div className="bg-card border border-border rounded-lg p-3">
-              <label className="text-xs text-muted-foreground block mb-1">ملاحظة</label>
-              <Input
-                placeholder="أضف ملاحظة..."
-                value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                className="border-0 bg-transparent"
-              />
-            </div>
-
-            {/* Delivery Date */}
-            <div className="bg-card border border-border rounded-lg p-3">
-              <label className="text-xs text-muted-foreground block mb-1">موعد التسليم</label>
-              <Input
-                type="date"
-                value={formData.deliveryDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, deliveryDate: e.target.value }))}
-                className="border-0 bg-transparent"
-              />
-            </div>
+          <TabsContent value="khaleeji" className="mt-0">
+            <KhaleejiMeasurements
+              formData={{
+                measurements: formData.measurements,
+                details: formData.details,
+                tailoringType: formData.tailoringType,
+                notes: formData.notes,
+                deliveryDate: formData.deliveryDate
+              }}
+              onMeasurementChange={handleMeasurementChange}
+              onDetailToggle={handleDetailToggle}
+              onTailoringTypeToggle={handleTailoringTypeToggle}
+              onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
+            />
           </TabsContent>
 
           <TabsContent value="thobe" className="mt-0 space-y-4">
