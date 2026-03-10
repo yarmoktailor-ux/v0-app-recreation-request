@@ -6,6 +6,12 @@ import { useApp } from '@/lib/context'
 import { Sidebar } from '@/components/sidebar'
 import { ClientsPage } from '@/components/clients-page'
 import { AddClientPage } from '@/components/add-client-page'
+import { TrackingPage } from '@/components/tracking-page'
+import { AccountsPage } from '@/components/accounts-page'
+import { ReportsPage } from '@/components/reports-page'
+import { UserSettingsPage } from '@/components/user-settings-page'
+import { AboutPage } from '@/components/about-page'
+import { BackupPage } from '@/components/backup-page'
 import { 
   Menu, 
   MoreVertical, 
@@ -19,7 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-type Page = 'home' | 'clients' | 'add-client' | 'tracking' | 'settings'
+type Page = 'home' | 'clients' | 'add-client' | 'tracking' | 'tailors' | 'workers' | 'suppliers' | 'reports' | 'user-settings' | 'about' | 'backup' | 'restore'
 
 export function HomeScreen() {
   const { 
@@ -76,6 +82,42 @@ export function HomeScreen() {
         editingClientId={editingClient}
       />
     )
+  }
+
+  if (currentPage === 'tracking') {
+    return <TrackingPage onBack={() => setCurrentPage('home')} />
+  }
+
+  if (currentPage === 'tailors') {
+    return <AccountsPage onBack={() => setCurrentPage('home')} title="حسابات الخياطين والقصاصين" type="tailors" />
+  }
+
+  if (currentPage === 'workers') {
+    return <AccountsPage onBack={() => setCurrentPage('home')} title="حسابات العمال" type="workers" />
+  }
+
+  if (currentPage === 'suppliers') {
+    return <AccountsPage onBack={() => setCurrentPage('home')} title="حسابات الموردين" type="suppliers" />
+  }
+
+  if (currentPage === 'reports') {
+    return <ReportsPage onBack={() => setCurrentPage('home')} />
+  }
+
+  if (currentPage === 'user-settings') {
+    return <UserSettingsPage onBack={() => setCurrentPage('home')} />
+  }
+
+  if (currentPage === 'about') {
+    return <AboutPage onBack={() => setCurrentPage('home')} />
+  }
+
+  if (currentPage === 'backup') {
+    return <BackupPage onBack={() => setCurrentPage('home')} type="backup" />
+  }
+
+  if (currentPage === 'restore') {
+    return <BackupPage onBack={() => setCurrentPage('home')} type="restore" />
   }
 
   return (
