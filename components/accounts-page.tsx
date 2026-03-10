@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { ArrowRight, Search, UserPlus, MoreVertical, Phone, Calendar, User, MessageSquare, List, CreditCard } from 'lucide-react'
+import { ArrowRight, Search, MoreVertical, Calendar, MessageSquare, List, CreditCard, FileText, Plus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -26,6 +26,7 @@ interface Transaction {
   quantity: number
   details: string
   currency: 'local' | 'dollar' | 'saudi'
+  runningBalance: number
 }
 
 interface Account {
@@ -33,6 +34,8 @@ interface Account {
   name: string
   phone: string
   balance: number
+  totalGive: number
+  totalTake: number
   transactions: Transaction[]
 }
 
@@ -42,9 +45,26 @@ interface AccountsPageProps {
   type: 'tailors' | 'workers' | 'suppliers'
 }
 
+const TailorIcon = () => (
+  <svg width="36" height="36" viewBox="0 0 64 64" fill="none" className="text-primary">
+    <circle cx="32" cy="14" r="8" stroke="currentColor" strokeWidth="3" fill="none"/>
+    <path d="M16 56 L20 34 L32 40 L44 34 L48 56" stroke="currentColor" strokeWidth="3" fill="none" strokeLinejoin="round"/>
+    <path d="M20 34 L16 26 C16 26 24 22 32 22 C40 22 48 26 48 26 L44 34" stroke="currentColor" strokeWidth="3" fill="none" strokeLinejoin="round"/>
+    <line x1="28" y1="40" x2="26" y2="56" stroke="currentColor" strokeWidth="2.5"/>
+    <line x1="36" y1="40" x2="38" y2="56" stroke="currentColor" strokeWidth="2.5"/>
+  </svg>
+)
+
+const PdfIcon = () => (
+  <div className="flex flex-col items-center justify-center w-10 h-10 border-2 border-red-500 rounded">
+    <FileText className="w-5 h-5 text-red-500" />
+    <span className="text-red-500 text-[8px] font-bold leading-none">PDF</span>
+  </div>
+)
+
 export function AccountsPage({ onBack, title, type }: AccountsPageProps) {
   const storageKey = `yarmouk-${type}`
-  
+
   const [accounts, setAccounts] = useState<Account[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(storageKey)
@@ -52,48 +72,44 @@ export function AccountsPage({ onBack, title, type }: AccountsPageProps) {
     }
     return []
   })
-  
+
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    pricePerPiece: '',
     quantity: 0,
+    pricePerPiece: '',
     amount: '',
     details: '',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toLocaleDateString('en-GB').split('/').reverse().join('-'),
     currency: 'local' as 'local' | 'dollar' | 'saudi'
   })
+
+  const [newAccountDialog, setNewAccountDialog] = useState(false)
+  const [newAccountName, setNewAccountName] = useState('')
+  const [newAccountPhone, setNewAccountPhone] = useState('')
 
   const saveAccounts = (newAccounts: Account[]) => {
     setAccounts(newAccounts)
     localStorage.setItem(storageKey, JSON.stringify(newAccounts))
+    if (selectedAccount) {
+      const updated = newAccounts.find(a => a.id === selectedAccount.id)
+      if (updated) setSelectedAccount(updated)
+    }
   }
 
-  const handleAdd = () => {
-    setFormData({
-      name: '',
-      phone: '',
-      pricePerPiece: '',
-      quantity: 0,
-      amount: '',
-      details: '',
-      date: new Date().toISOString().split('T')[0],
-      currency: 'local'
-    })
-    setDialogOpen(true)
-  }
+  const handleAddTransaction = (transactionType: 'give' | 'take') => {
+    if (!selectedAccount) return
+    const amount = parseFloat(formData.amount) ||
+      (parseFloat(formData.pricePerPiece) * formData.quantity) || 0
+    if (amount === 0) return
 
-  const handleTransaction = (transactionType: 'give' | 'take') => {
-    if (!formData.name.trim()) return
-
-    const amount = parseFloat(formData.amount) || (parseFloat(formData.pricePerPiece) * formData.quantity) || 0
     const adjustedAmount = transactionType === 'give' ? -amount : amount
+    const newBalance = selectedAccount.balance + adjustedAmount
+    const newTotalGive = transactionType === 'give' ? selectedAccount.totalGive + amount : selectedAccount.totalGive
+    const newTotalTake = transactionType === 'take' ? selectedAccount.totalTake + amount : selectedAccount.totalTake
 
-    const existingAccount = accounts.find(a => a.name === formData.name)
-    
     const transaction: Transaction = {
       id: Date.now().toString(),
       date: formData.date,
@@ -102,58 +118,299 @@ export function AccountsPage({ onBack, title, type }: AccountsPageProps) {
       pricePerPiece: parseFloat(formData.pricePerPiece) || 0,
       quantity: formData.quantity,
       details: formData.details,
-      currency: formData.currency
+      currency: formData.currency,
+      runningBalance: newBalance
     }
 
-    if (existingAccount) {
-      const updated = accounts.map(a => 
-        a.id === existingAccount.id 
-          ? { 
-              ...a, 
-              balance: a.balance + adjustedAmount,
-              transactions: [...a.transactions, transaction]
-            }
-          : a
-      )
-      saveAccounts(updated)
-    } else {
-      const newAccount: Account = {
-        id: Date.now().toString(),
-        name: formData.name,
-        phone: formData.phone,
-        balance: adjustedAmount,
-        transactions: [transaction]
-      }
-      saveAccounts([...accounts, newAccount])
-    }
+    const updated = accounts.map(a =>
+      a.id === selectedAccount.id
+        ? { ...a, balance: newBalance, totalGive: newTotalGive, totalTake: newTotalTake, transactions: [...a.transactions, transaction] }
+        : a
+    )
+    saveAccounts(updated)
     setDialogOpen(false)
+    resetForm()
   }
 
-  const handleDelete = (id: string) => {
+  const resetForm = () => {
+    setFormData({
+      quantity: 0,
+      pricePerPiece: '',
+      amount: '',
+      details: '',
+      date: new Date().toLocaleDateString('en-GB').split('/').reverse().join('-'),
+      currency: 'local'
+    })
+  }
+
+  const handleAddNewAccount = () => {
+    if (!newAccountName.trim()) return
+    const newAccount: Account = {
+      id: Date.now().toString(),
+      name: newAccountName.trim(),
+      phone: newAccountPhone.trim(),
+      balance: 0,
+      totalGive: 0,
+      totalTake: 0,
+      transactions: []
+    }
+    saveAccounts([...accounts, newAccount])
+    setNewAccountName('')
+    setNewAccountPhone('')
+    setNewAccountDialog(false)
+  }
+
+  const handleDeleteAccount = (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذا الحساب؟')) {
       saveAccounts(accounts.filter(a => a.id !== id))
     }
   }
 
-  const filteredAccounts = accounts.filter(a => 
+  const handleDeleteTransaction = (txId: string) => {
+    if (!selectedAccount) return
+    const tx = selectedAccount.transactions.find(t => t.id === txId)
+    if (!tx) return
+    const updated = accounts.map(a =>
+      a.id === selectedAccount.id
+        ? {
+            ...a,
+            balance: a.balance - tx.amount,
+            totalGive: tx.type === 'give' ? a.totalGive - Math.abs(tx.amount) : a.totalGive,
+            totalTake: tx.type === 'take' ? a.totalTake - Math.abs(tx.amount) : a.totalTake,
+            transactions: a.transactions.filter(t => t.id !== txId)
+          }
+        : a
+    )
+    saveAccounts(updated)
+  }
+
+  const handlePrint = (account: Account) => {
+    const rows = account.transactions.map(tx => `
+      <tr>
+        <td style="border:1px solid #ccc;padding:6px;text-align:center">${tx.date}</td>
+        <td style="border:1px solid #ccc;padding:6px;text-align:center;color:${tx.amount < 0 ? 'red' : 'green'}">${Math.abs(tx.amount)}</td>
+        <td style="border:1px solid #ccc;padding:6px;text-align:center">${tx.details}</td>
+        <td style="border:1px solid #ccc;padding:6px;text-align:center">${tx.runningBalance}</td>
+      </tr>
+    `).join('')
+
+    const win = window.open('', '_blank')
+    if (!win) return
+    win.document.write(`
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <title>كشف حساب - ${account.name}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; direction: rtl; }
+          h2 { text-align: center; }
+          table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+          th { background: #c9a227; color: white; padding: 8px; border: 1px solid #ccc; }
+          td { padding: 6px; border: 1px solid #ccc; text-align: center; }
+          .summary { margin-top: 16px; display: flex; gap: 24px; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <h2>كشف حساب: ${account.name}</h2>
+        <p style="text-align:center">هاتف: ${account.phone || '-'}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>المبلغ</th>
+              <th>التفاصيل</th>
+              <th>الرصيد</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="summary">
+          <span>اعطيت (عليه): <span style="color:red">${account.totalGive}</span></span>
+          <span>أخذت (له): <span style="color:green">${account.totalTake}</span></span>
+          <span>الرصيد له: <span style="color:${account.balance < 0 ? 'red' : 'green'}">${account.balance}</span></span>
+        </div>
+      </body>
+      </html>
+    `)
+    win.document.close()
+    win.focus()
+    setTimeout(() => { win.print(); win.close() }, 300)
+  }
+
+  const filteredAccounts = accounts.filter(a =>
     a.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  // Tailor/cutter icon SVG
-  const TailorIcon = () => (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-primary">
-      <rect x="4" y="4" width="16" height="16" rx="2" />
-      <line x1="4" y1="9" x2="20" y2="9" />
-      <line x1="9" y1="4" x2="9" y2="9" />
-      <line x1="4" y1="14" x2="20" y2="14" />
-      <path d="M12 14v6" />
-      <circle cx="12" cy="6.5" r="1" fill="currentColor" />
-    </svg>
-  )
+  // ---- DETAIL VIEW ----
+  if (selectedAccount) {
+    const account = accounts.find(a => a.id === selectedAccount.id) || selectedAccount
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Header */}
+        <header className="bg-primary text-primary-foreground h-14 flex items-center px-4 gap-3">
+          <button onClick={() => setShowSearch(!showSearch)}>
+            <Search className="w-6 h-6" />
+          </button>
+          <h1 className="text-lg font-bold flex-1 text-center">{account.name}</h1>
+          <button onClick={() => handlePrint(account)}>
+            <PdfIcon />
+          </button>
+          <button onClick={() => setSelectedAccount(null)}>
+            <ArrowRight className="w-6 h-6" />
+          </button>
+        </header>
 
+        {/* Table Header */}
+        <div className="grid grid-cols-4 bg-black text-white text-sm font-bold">
+          <div className="p-2 text-center border-l border-gray-700">الرصيد</div>
+          <div className="p-2 text-center border-l border-gray-700">التفاصيل</div>
+          <div className="p-2 text-center border-l border-gray-700">المبلغ</div>
+          <div className="p-2 text-center">التاريخ</div>
+        </div>
+
+        {/* Transactions */}
+        <div className="flex-1 overflow-y-auto">
+          {account.transactions.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground">لا توجد معاملات</div>
+          ) : (
+            account.transactions.map((tx, idx) => (
+              <div
+                key={tx.id}
+                className={`grid grid-cols-4 border-b border-border text-sm ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+              >
+                <div className="p-2 text-center border-l border-border">{tx.runningBalance}</div>
+                <div className="p-2 text-center border-l border-border text-xs">{tx.details}</div>
+                <div className={`p-2 text-center border-l border-border font-bold ${tx.amount < 0 ? 'bg-primary text-white' : 'text-green-700'}`}>
+                  {Math.abs(tx.amount)}{tx.amount < 0 ? '-' : ''}
+                </div>
+                <div className="p-2 text-center text-xs">{tx.date}</div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Bottom Summary */}
+        <div className="bg-black text-white p-3 flex items-center justify-between">
+          <button
+            onClick={() => { setDialogOpen(true); resetForm() }}
+            className="bg-primary rounded-lg p-2"
+          >
+            <div className="relative">
+              <FileText className="w-7 h-7" />
+              <Plus className="w-3 h-3 absolute -top-1 -right-1 bg-primary rounded-full" />
+            </div>
+          </button>
+          <div className="text-sm text-center flex-1">
+            <div className="flex justify-center gap-4">
+              <span>اعطيت (عليه): <span className="text-red-400 font-bold">{account.totalGive}</span></span>
+              <span>أخذت (له): <span className="text-primary font-bold">{account.totalTake}</span></span>
+            </div>
+            <div>الرصيد له: <span className={`font-bold ${account.balance < 0 ? 'text-red-400' : 'text-green-400'}`}>{account.balance}</span></div>
+          </div>
+        </div>
+
+        {/* Add Transaction Dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="bg-background max-w-md p-0 mx-4">
+            <DialogHeader className="bg-primary text-primary-foreground p-3 rounded-t-lg">
+              <DialogTitle className="text-center font-bold">اضافة عملية جديدة</DialogTitle>
+            </DialogHeader>
+            <div className="p-4">
+              <div className="border-2 border-primary rounded-xl p-4 space-y-3 bg-white">
+
+                {/* Name (read-only) */}
+                <div className="flex items-center border border-border rounded-full overflow-hidden">
+                  <div className="px-3 py-2 border-l bg-gray-50">
+                    <div className="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
+                      <span className="text-primary text-xs font-bold">ع</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 text-center py-2 font-bold text-gray-700">{account.name}</div>
+                </div>
+
+                {/* Quantity */}
+                <div className="flex items-center border border-border rounded-full overflow-hidden">
+                  <div className="px-3 py-2 border-l bg-gray-50">
+                    <List className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1 flex flex-col items-center py-1">
+                    <span className="text-[10px] text-muted-foreground">عدد القطع</span>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => setFormData(p => ({ ...p, quantity: Math.max(0, p.quantity - 1) }))}
+                        className="w-8 h-8 border border-border rounded text-lg font-bold flex items-center justify-center">−</button>
+                      <span className="w-10 text-center font-bold text-lg">{formData.quantity}</span>
+                      <button onClick={() => setFormData(p => ({ ...p, quantity: p.quantity + 1 }))}
+                        className="w-8 h-8 border border-border rounded text-lg font-bold flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Amount */}
+                <div className="flex items-center border border-border rounded-full overflow-hidden">
+                  <div className="px-3 py-2 border-l bg-gray-50">
+                    <CreditCard className="w-5 h-5 text-primary" />
+                  </div>
+                  <Input placeholder="المبلغ" value={formData.amount}
+                    onChange={(e) => setFormData(p => ({ ...p, amount: e.target.value }))}
+                    className="border-0 text-center bg-transparent" inputMode="decimal" />
+                </div>
+
+                {/* Details */}
+                <div className="flex items-center border border-border rounded-full overflow-hidden">
+                  <div className="px-3 py-2 border-l bg-gray-50">
+                    <MessageSquare className="w-5 h-5 text-primary" />
+                  </div>
+                  <Input placeholder="التفاصيل" value={formData.details}
+                    onChange={(e) => setFormData(p => ({ ...p, details: e.target.value }))}
+                    className="border-0 text-center bg-transparent" />
+                </div>
+
+                {/* Date */}
+                <div className="flex items-center border border-border rounded-full overflow-hidden">
+                  <div className="px-3 py-2 border-l bg-gray-50">
+                    <Calendar className="w-5 h-5 text-primary" />
+                  </div>
+                  <Input type="date" value={formData.date}
+                    onChange={(e) => setFormData(p => ({ ...p, date: e.target.value }))}
+                    className="border-0 text-center bg-transparent" />
+                </div>
+
+                {/* Currency */}
+                <div className="flex justify-center gap-6 py-1">
+                  {(['saudi', 'dollar', 'local'] as const).map(c => (
+                    <label key={c} className="flex items-center gap-1 cursor-pointer text-sm">
+                      <span>{c === 'saudi' ? 'سعودي' : c === 'dollar' ? 'دولار' : 'محلي'}</span>
+                      <input type="radio" name="currency" checked={formData.currency === c}
+                        onChange={() => setFormData(p => ({ ...p, currency: c }))}
+                        className="w-4 h-4 accent-primary" />
+                    </label>
+                  ))}
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-3">
+                  <Button onClick={() => handleAddTransaction('take')}
+                    className="flex-1 bg-primary text-primary-foreground rounded-full">
+                    أخذت (له)
+                  </Button>
+                  <Button onClick={() => handleAddTransaction('give')}
+                    className="flex-1 bg-primary text-primary-foreground rounded-full"
+                    style={{ color: '#dc2626' }}>
+                    أعطيت (عليه)
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    )
+  }
+
+  // ---- LIST VIEW ----
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="bg-primary text-primary-foreground h-14 flex items-center px-4 gap-4">
         <button onClick={() => setShowSearch(!showSearch)}>
           <Search className="w-6 h-6" />
@@ -164,235 +421,77 @@ export function AccountsPage({ onBack, title, type }: AccountsPageProps) {
         </button>
       </header>
 
-      {/* Search Bar */}
       {showSearch && (
         <div className="p-2 bg-primary">
-          <Input
-            placeholder="بحث..."
-            value={searchQuery}
+          <Input placeholder="بحث..." value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-white text-black"
-            autoFocus
-          />
+            className="bg-white text-black" autoFocus />
         </div>
       )}
 
-      <main className="p-4 pb-24">
-        {/* Accounts List */}
+      <main className="p-4 pb-24 space-y-3">
         {filteredAccounts.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>لا توجد حسابات</p>
-          </div>
+          <div className="text-center py-16 text-muted-foreground">لا توجد حسابات</div>
         ) : (
-          <div className="space-y-3">
-            {filteredAccounts.map(account => (
-              <div 
-                key={account.id}
-                className="bg-card border-2 border-primary rounded-lg p-3 flex items-center justify-between"
-              >
-                {/* Menu */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="p-1">
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    <DropdownMenuItem onClick={() => handleDelete(account.id)}>
-                      حذف الحساب
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+          filteredAccounts.map(account => (
+            <div key={account.id}
+              className="bg-card border-2 border-primary rounded-lg p-3 flex items-center gap-3">
+              {/* Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1">
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={() => handleDeleteAccount(account.id)}>
+                    حذف الحساب
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                {/* Balance */}
-                <div className={`px-4 py-2 rounded-lg text-white font-bold ${account.balance >= 0 ? 'bg-green-600' : 'bg-black'}`}>
-                  {account.balance}
-                </div>
-
-                {/* Name */}
-                <span className="font-bold text-lg flex-1 text-center">{account.name}</span>
-
-                {/* Icon */}
-                <TailorIcon />
+              {/* Balance */}
+              <div className={`px-4 py-2 rounded-lg text-white font-bold text-lg min-w-[70px] text-center ${account.balance >= 0 ? 'bg-green-600' : 'bg-black'}`}>
+                {account.balance}
               </div>
-            ))}
-          </div>
+
+              {/* Name */}
+              <button className="font-bold text-lg flex-1 text-center" onClick={() => setSelectedAccount(account)}>
+                {account.name}
+              </button>
+
+              {/* Icon - opens detail */}
+              <button onClick={() => setSelectedAccount(account)}>
+                <TailorIcon />
+              </button>
+            </div>
+          ))
         )}
       </main>
 
       {/* FAB */}
-      <button
-        onClick={handleAdd}
-        className="fixed bottom-6 left-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center"
-      >
-        <UserPlus className="w-6 h-6" />
+      <button onClick={() => setNewAccountDialog(true)}
+        className="fixed bottom-6 left-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center">
+        <div className="relative">
+          <FileText className="w-7 h-7" />
+          <Plus className="w-3 h-3 absolute -top-1 -right-1" />
+        </div>
       </button>
 
-      {/* Add Transaction Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-background max-w-md p-0">
-          <DialogHeader className="bg-primary text-primary-foreground p-4">
-            <DialogTitle className="text-center">اضافة حساب جديد</DialogTitle>
+      {/* New Account Dialog */}
+      <Dialog open={newAccountDialog} onOpenChange={setNewAccountDialog}>
+        <DialogContent className="bg-background max-w-sm mx-4">
+          <DialogHeader>
+            <DialogTitle className="text-center">إضافة حساب جديد</DialogTitle>
           </DialogHeader>
-          
-          <div className="p-4">
-            <div className="border-2 border-primary rounded-xl p-4 space-y-3">
-              {/* Account Name */}
-              <div className="flex items-center border border-border rounded-full overflow-hidden bg-white">
-                <div className="px-3 py-2 border-l border-border">
-                  <User className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <Input
-                  placeholder="اسم الحساب"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="border-0 text-center bg-transparent"
-                />
-              </div>
-
-              {/* Phone */}
-              <div className="flex items-center border border-border rounded-full overflow-hidden bg-white">
-                <div className="px-3 py-2 border-l border-border">
-                  <Phone className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <Input
-                  placeholder="رقم الهاتف"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className="border-0 text-center bg-transparent"
-                  inputMode="tel"
-                />
-              </div>
-
-              {/* Price Per Piece */}
-              <div className="flex items-center border border-border rounded-full overflow-hidden bg-white">
-                <div className="px-3 py-2 border-l border-border">
-                  <List className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <Input
-                  placeholder="سعر شغل القطعة"
-                  value={formData.pricePerPiece}
-                  onChange={(e) => setFormData(prev => ({ ...prev, pricePerPiece: e.target.value }))}
-                  className="border-0 text-center bg-transparent"
-                  inputMode="decimal"
-                />
-              </div>
-
-              {/* Quantity */}
-              <div className="flex items-center border border-border rounded-full overflow-hidden bg-white">
-                <div className="px-3 py-2 border-l border-border">
-                  <List className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1 flex items-center justify-center gap-4 py-1">
-                  <span className="text-xs text-muted-foreground">عدد القطع</span>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => setFormData(prev => ({ ...prev, quantity: Math.max(0, prev.quantity - 1) }))}
-                      className="w-8 h-8 border rounded flex items-center justify-center"
-                    >
-                      -
-                    </button>
-                    <span className="w-12 text-center font-bold">{formData.quantity}</span>
-                    <button 
-                      onClick={() => setFormData(prev => ({ ...prev, quantity: prev.quantity + 1 }))}
-                      className="w-8 h-8 border rounded flex items-center justify-center"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Amount */}
-              <div className="flex items-center border border-border rounded-full overflow-hidden bg-white">
-                <div className="px-3 py-2 border-l border-border">
-                  <CreditCard className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <Input
-                  placeholder="المبلغ"
-                  value={formData.amount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                  className="border-0 text-center bg-transparent"
-                  inputMode="decimal"
-                />
-              </div>
-
-              {/* Details */}
-              <div className="flex items-center border border-border rounded-full overflow-hidden bg-white">
-                <div className="px-3 py-2 border-l border-border">
-                  <MessageSquare className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <Input
-                  placeholder="التفاصيل"
-                  value={formData.details}
-                  onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))}
-                  className="border-0 text-center bg-transparent"
-                />
-              </div>
-
-              {/* Date */}
-              <div className="flex items-center border border-border rounded-full overflow-hidden bg-white">
-                <div className="px-3 py-2 border-l border-border">
-                  <Calendar className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <Input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                  className="border-0 text-center bg-transparent"
-                />
-              </div>
-
-              {/* Currency Selection */}
-              <div className="flex justify-center gap-6 py-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <span>سعودي</span>
-                  <input 
-                    type="radio" 
-                    name="currency" 
-                    checked={formData.currency === 'saudi'}
-                    onChange={() => setFormData(prev => ({ ...prev, currency: 'saudi' }))}
-                    className="w-5 h-5 accent-primary"
-                  />
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <span>دولار</span>
-                  <input 
-                    type="radio" 
-                    name="currency" 
-                    checked={formData.currency === 'dollar'}
-                    onChange={() => setFormData(prev => ({ ...prev, currency: 'dollar' }))}
-                    className="w-5 h-5 accent-primary"
-                  />
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <span>محلي</span>
-                  <input 
-                    type="radio" 
-                    name="currency" 
-                    checked={formData.currency === 'local'}
-                    onChange={() => setFormData(prev => ({ ...prev, currency: 'local' }))}
-                    className="w-5 h-5 accent-primary"
-                  />
-                </label>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-2">
-                <Button 
-                  onClick={() => handleTransaction('take')}
-                  className="flex-1 bg-primary text-primary-foreground rounded-full py-3"
-                >
-                  أخذت (له)
-                </Button>
-                <Button 
-                  onClick={() => handleTransaction('give')}
-                  className="flex-1 bg-primary text-primary-foreground rounded-full py-3"
-                >
-                  أعطيت (عليه)
-                </Button>
-              </div>
-            </div>
+          <div className="space-y-3 py-2">
+            <Input placeholder="اسم الحساب" value={newAccountName}
+              onChange={(e) => setNewAccountName(e.target.value)} autoFocus />
+            <Input placeholder="رقم الهاتف (اختياري)" value={newAccountPhone}
+              onChange={(e) => setNewAccountPhone(e.target.value)} inputMode="tel" />
+            <Button onClick={handleAddNewAccount} className="w-full bg-primary text-primary-foreground">
+              إضافة
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
