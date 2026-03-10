@@ -85,10 +85,14 @@ interface AppContextType {
   // Fabric Types
   fabricTypes: string[]
   addFabricType: (type: string) => void
+  updateFabricType: (oldType: string, newType: string) => void
+  removeFabricType: (type: string) => void
   
   // Options Lists
   optionLists: Record<string, string[]>
   addOptionToList: (listName: string, option: string) => void
+  updateOptionInList: (listName: string, oldOption: string, newOption: string) => void
+  removeOptionFromList: (listName: string, option: string) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -287,11 +291,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const updateFabricType = (oldType: string, newType: string) => {
+    setFabricTypes(prev => prev.map(t => t === oldType ? newType : t))
+  }
+
+  const removeFabricType = (type: string) => {
+    setFabricTypes(prev => prev.filter(t => t !== type))
+  }
+
   // Option lists
   const addOptionToList = (listName: string, option: string) => {
     setOptionLists(prev => ({
       ...prev,
       [listName]: [...(prev[listName] || []), option]
+    }))
+  }
+
+  const updateOptionInList = (listName: string, oldOption: string, newOption: string) => {
+    setOptionLists(prev => ({
+      ...prev,
+      [listName]: (prev[listName] || []).map(o => o === oldOption ? newOption : o)
+    }))
+  }
+
+  const removeOptionFromList = (listName: string, option: string) => {
+    setOptionLists(prev => ({
+      ...prev,
+      [listName]: (prev[listName] || []).filter(o => o !== option)
     }))
   }
 
@@ -319,8 +345,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateShopSettings,
       fabricTypes,
       addFabricType,
+      updateFabricType,
+      removeFabricType,
       optionLists,
-      addOptionToList
+      addOptionToList,
+      updateOptionInList,
+      removeOptionFromList
     }}>
       {children}
     </AppContext.Provider>

@@ -10,6 +10,7 @@ import { TrackingPage } from '@/components/tracking-page'
 import { AccountsPage } from '@/components/accounts-page'
 import { ReportsPage } from '@/components/reports-page'
 import { UserSettingsPage } from '@/components/user-settings-page'
+import { MeasurementSettingsPage } from '@/components/measurement-settings-page'
 import { AboutPage } from '@/components/about-page'
 import { BackupPage } from '@/components/backup-page'
 import { 
@@ -25,7 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-type Page = 'home' | 'clients' | 'add-client' | 'tracking' | 'tailors' | 'workers' | 'suppliers' | 'reports' | 'user-settings' | 'about' | 'backup' | 'restore'
+type Page = 'home' | 'clients' | 'add-client' | 'tracking' | 'tailors' | 'workers' | 'suppliers' | 'reports' | 'user-settings' | 'measurement-settings' | 'about' | 'backup' | 'restore'
 
 export function HomeScreen() {
   const { 
@@ -106,6 +107,10 @@ export function HomeScreen() {
 
   if (currentPage === 'user-settings') {
     return <UserSettingsPage onBack={() => setCurrentPage('home')} />
+  }
+
+  if (currentPage === 'measurement-settings') {
+    return <MeasurementSettingsPage onBack={() => setCurrentPage('home')} />
   }
 
   if (currentPage === 'about') {

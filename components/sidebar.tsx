@@ -38,7 +38,7 @@ const menuItems = [
   { id: 'inventory', label: 'المخزون', icon: Package },
   { id: 'reports', label: 'التقارير', icon: FileText },
   { id: 'user-settings', label: 'إعدادات حساب المستخدم', icon: UserCog },
-  { id: 'interface-settings', label: 'قائمة إعداد واجهة المقاسات', icon: Settings },
+  { id: 'measurement-settings', label: 'قائمة إعداد واجهة المقاسات', icon: Settings },
   { id: 'backup', label: 'حفظ نسخة احتياطية', icon: Download },
   { id: 'restore', label: 'استعادة النسخة الاحتياطية', icon: Upload },
   { id: 'activate', label: 'تفعيل التطبيق', icon: Key },
