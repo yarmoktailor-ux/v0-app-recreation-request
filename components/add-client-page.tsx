@@ -56,7 +56,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
     name: '',
     phone: '',
     fabricType: '',
-    quantity: 1,
+    quantity: 0,
     price: 0,
     paid: 0,
     tax: 0,

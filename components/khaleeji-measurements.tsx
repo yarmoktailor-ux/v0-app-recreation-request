@@ -319,21 +319,12 @@ export function KhaleejiMeasurements({
         </div>
       </div>
 
-      {/* المقاسات الأساسية: الطول / الكتف / طول الكم */}
+      {/* المقاسات الأساسية الصف 1: الطول / الكتف / طول اليد */}
       <div className="border border-border rounded-lg overflow-hidden">
         <div className="grid grid-cols-3 divide-x divide-x-reverse divide-border">
-          <div className="p-2">
-            <div className="bg-secondary text-center text-xs py-1 rounded mb-2">طول الكم</div>
-            <div className="grid grid-cols-2 gap-1 text-xs">
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-muted-foreground">س</span>
-                <Input value={val('sleeveS')} onChange={e => set('sleeveS')(e.target.value)} className="h-7 text-center text-xs px-1" inputMode="decimal" />
-              </div>
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-muted-foreground">ك</span>
-                <Input value={val('sleeveK')} onChange={e => set('sleeveK')(e.target.value)} className="h-7 text-center text-xs px-1" inputMode="decimal" />
-              </div>
-            </div>
+          <div className="p-2 flex flex-col items-center justify-center gap-1">
+            <span className="text-xs text-muted-foreground">طول اليد</span>
+            <Input value={val('sleeveLength')} onChange={e => set('sleeveLength')(e.target.value)} className="h-10 text-center text-base w-full" inputMode="decimal" />
           </div>
           <div className="p-2 flex flex-col items-center justify-center gap-1">
             <span className="text-xs text-muted-foreground">الكتف</span>
@@ -346,69 +337,38 @@ export function KhaleejiMeasurements({
         </div>
       </div>
 
-      {/* وسع الصدر */}
-      <div className="border border-border rounded-lg overflow-hidden">
-        <div className="bg-secondary text-center text-sm font-medium py-1.5">وسع الصدر</div>
-        <div className="grid grid-cols-3 divide-x divide-x-reverse divide-border">
-          {[['HP','hp'],['وسط','waist'],['صدر','chest']].map(([lbl, key]) => (
-            <div key={key} className="p-2 flex flex-col items-center justify-center gap-1">
-              <span className="text-xs text-muted-foreground">{lbl}</span>
-              <Input value={val(key)} onChange={e => set(key)(e.target.value)} className="h-10 text-center text-base w-full" inputMode="decimal" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* رقبة / مودا / الكبك */}
+      {/* وسع الصدر / الرقبة / وسط اليد */}
       <div className="border border-border rounded-lg overflow-hidden">
         <div className="grid grid-cols-3 divide-x divide-x-reverse divide-border">
-          <div className="p-2">
-            <div className="bg-secondary text-center text-xs py-1 rounded mb-2">الكبك</div>
-            <div className="grid grid-cols-2 gap-1 text-xs">
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-muted-foreground">س</span>
-                <Input value={val('cuffS')} onChange={e => set('cuffS')(e.target.value)} className="h-7 text-center text-xs px-1" inputMode="decimal" />
-              </div>
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-muted-foreground">ك</span>
-                <Input value={val('cuffK')} onChange={e => set('cuffK')(e.target.value)} className="h-7 text-center text-xs px-1" inputMode="decimal" />
-              </div>
-            </div>
+          <div className="p-2 flex flex-col items-center justify-center gap-1">
+            <span className="text-xs text-muted-foreground">وسط اليد</span>
+            <Input value={val('sleeveMiddle')} onChange={e => set('sleeveMiddle')(e.target.value)} className="h-10 text-center text-base w-full" inputMode="decimal" />
           </div>
           <div className="p-2 flex flex-col items-center justify-center gap-1">
-            <span className="text-xs text-muted-foreground">مودا</span>
-            <Input value={val('moda')} onChange={e => set('moda')(e.target.value)} className="h-10 text-center text-base w-full" inputMode="decimal" />
-          </div>
-          <div className="p-2 flex flex-col items-center justify-center gap-1">
-            <span className="text-xs text-muted-foreground">رقبة</span>
+            <span className="text-xs text-muted-foreground">الرقبة</span>
             <Input value={val('neck')} onChange={e => set('neck')(e.target.value)} className="h-10 text-center text-base w-full" inputMode="decimal" />
           </div>
+          <div className="p-2 flex flex-col items-center justify-center gap-1">
+            <span className="text-xs text-muted-foreground">وسع الصدر</span>
+            <Input value={val('chest')} onChange={e => set('chest')(e.target.value)} className="h-10 text-center text-base w-full" inputMode="decimal" />
+          </div>
         </div>
       </div>
 
-      {/* وسع أسفل / كفة أسفل / مفصل */}
+      {/* طول الكبك / وسع الخطوة / عرض الكفة */}
       <div className="border border-border rounded-lg overflow-hidden">
         <div className="grid grid-cols-3 divide-x divide-x-reverse divide-border">
-          <div className="p-2">
-            <div className="bg-secondary text-center text-xs py-1 rounded mb-2">مفصل</div>
-            <div className="grid grid-cols-2 gap-1 text-xs">
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-muted-foreground">س</span>
-                <Input value={val('jointS')} onChange={e => set('jointS')(e.target.value)} className="h-7 text-center text-xs px-1" inputMode="decimal" />
-              </div>
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-muted-foreground">ك</span>
-                <Input value={val('jointK')} onChange={e => set('jointK')(e.target.value)} className="h-7 text-center text-xs px-1" inputMode="decimal" />
-              </div>
-            </div>
+          <div className="p-2 flex flex-col items-center justify-center gap-1">
+            <span className="text-xs text-muted-foreground">عرض الكفة</span>
+            <Input value={val('cuffWidth')} onChange={e => set('cuffWidth')(e.target.value)} className="h-10 text-center text-base w-full" inputMode="decimal" />
           </div>
           <div className="p-2 flex flex-col items-center justify-center gap-1">
-            <span className="text-xs text-muted-foreground">كفة اسفل</span>
-            <Input value={val('bottomCuff')} onChange={e => set('bottomCuff')(e.target.value)} className="h-10 text-center text-base w-full" inputMode="decimal" />
+            <span className="text-xs text-muted-foreground">وسع الخطوة</span>
+            <Input value={val('stepWidth')} onChange={e => set('stepWidth')(e.target.value)} className="h-10 text-center text-base w-full" inputMode="decimal" />
           </div>
           <div className="p-2 flex flex-col items-center justify-center gap-1">
-            <span className="text-xs text-muted-foreground">وسع اسفل</span>
-            <Input value={val('bottomWidth')} onChange={e => set('bottomWidth')(e.target.value)} className="h-10 text-center text-base w-full" inputMode="decimal" />
+            <span className="text-xs text-muted-foreground">طول الكبك</span>
+            <Input value={val('cuffLength')} onChange={e => set('cuffLength')(e.target.value)} className="h-10 text-center text-base w-full" inputMode="decimal" />
           </div>
         </div>
       </div>
