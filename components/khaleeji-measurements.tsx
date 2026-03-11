@@ -319,7 +319,7 @@ export function KhaleejiMeasurements({
         </div>
       </div>
 
-      {/* المقاسات الأساسية الصف 1: الطول / الكتف / طول اليد */}
+      {/* الصف 1: الطول / الكتف / طول اليد */}
       <div className="border border-border rounded-lg overflow-hidden">
         <div className="grid grid-cols-3 divide-x divide-x-reverse divide-border">
           <div className="p-2 flex flex-col items-center justify-center gap-1">
@@ -337,7 +337,7 @@ export function KhaleejiMeasurements({
         </div>
       </div>
 
-      {/* وسع الصدر / الرقبة / وسط اليد */}
+      {/* الصف 2: وسع الصدر / الرقبة / وسط اليد */}
       <div className="border border-border rounded-lg overflow-hidden">
         <div className="grid grid-cols-3 divide-x divide-x-reverse divide-border">
           <div className="p-2 flex flex-col items-center justify-center gap-1">
@@ -355,7 +355,7 @@ export function KhaleejiMeasurements({
         </div>
       </div>
 
-      {/* طول الكبك / وسع الخطوة / عرض الكفة */}
+      {/* الصف 3: طول الكبك / وسع الخطوة / عرض الكفة */}
       <div className="border border-border rounded-lg overflow-hidden">
         <div className="grid grid-cols-3 divide-x divide-x-reverse divide-border">
           <div className="p-2 flex flex-col items-center justify-center gap-1">

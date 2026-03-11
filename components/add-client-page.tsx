@@ -318,7 +318,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
             />
           </div>
 
-          {/* Phone and Fabric */}
+          {/* نوع القماش + رقم الهاتف */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-card border border-border rounded-lg p-3 flex items-center gap-2">
               <span className="text-muted-foreground">📞</span>
@@ -352,14 +352,14 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
             </div>
           </div>
 
-          {/* Quantity and Date */}
+          {/* تاريخ الاستلام + الكمية */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-card border border-border rounded-lg p-3">
               <label className="text-xs text-muted-foreground block mb-1">الكمية</label>
               <Input
                 type="text"
                 value={formData.quantity}
-                onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 0 }))}
                 className="border-0 bg-transparent h-8"
                 inputMode="numeric"
               />
@@ -375,7 +375,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
             </div>
           </div>
 
-          {/* Price Fields */}
+          {/* المدفوع + المبلغ */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-card border border-border rounded-lg p-3">
               <label className="text-xs text-muted-foreground block mb-1">المبلغ</label>
@@ -399,7 +399,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
             </div>
           </div>
 
-          {/* Tax and Discount */}
+          {/* الخصم + الضريبة */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-card border border-border rounded-lg p-3">
               <label className="text-xs text-muted-foreground block mb-1">الضريبة المضافة (%)</label>
