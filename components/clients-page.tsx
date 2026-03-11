@@ -40,6 +40,7 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
   const { clients, deleteClient, updateMeasurementStatus, addPayment, shopSettings } = useApp()
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
+  const [currentTab, setCurrentTab] = useState<'new' | 'ready' | 'delivered'>('new')
   const [statusDialog, setStatusDialog] = useState<{ open: boolean; clientId: string; measurementId: string }>({ 
     open: false, 
     clientId: '', 
@@ -77,7 +78,18 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
   })
   const invoiceRef = useRef<HTMLDivElement>(null)
 
-  const filteredClients = clients.filter(client => 
+  // Filter clients based on latest measurement status
+  const filteredClientsByTab = clients.filter(client => {
+    const latestMeasurement = client.measurements[client.measurements.length - 1]
+    if (!latestMeasurement) return false
+    
+    if (currentTab === 'new') return latestMeasurement.status === 'new'
+    if (currentTab === 'ready') return latestMeasurement.status === 'ready'
+    if (currentTab === 'delivered') return latestMeasurement.status === 'delivered'
+    return false
+  })
+
+  const filteredClients = filteredClientsByTab.filter(client => 
     client.name.includes(searchQuery) || client.phone.includes(searchQuery)
   )
 
@@ -255,13 +267,57 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
         </button>
       </header>
 
+      {/* Tabs */}
+      <div className="flex gap-2 p-4 border-b border-border bg-card overflow-x-auto">
+        <button
+          onClick={() => setCurrentTab('new')}
+          className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium transition-colors ${
+            currentTab === 'new' 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-secondary text-foreground'
+          }`}
+        >
+          مقاسات جديدة
+        </button>
+        <button
+          onClick={() => setCurrentTab('ready')}
+          className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium transition-colors ${
+            currentTab === 'ready' 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-secondary text-foreground'
+          }`}
+        >
+          مقاسات جاهزة
+        </button>
+        <button
+          onClick={() => setCurrentTab('delivered')}
+          className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium transition-colors ${
+            currentTab === 'delivered' 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-secondary text-foreground'
+          }`}
+        >
+          مقاسات مسلمة
+        </button>
+      </div>
+
       {/* Content */}
       <main className="p-4">
         {filteredClients.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Users className="w-20 h-20 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground text-lg mb-2">لا توجد عملاء</p>
-            <p className="text-muted-foreground text-sm">ابدأ بإضافة عميل جديد للبدء</p>
+            <p className="text-muted-foreground text-lg mb-2">
+              {currentTab === 'new' ? 'لا توجد مقاسات جديدة' : currentTab === 'ready' ? 'لا توجد مقاسات جاهزة' : 'لا توجد مقاسات مسلمة'}
+            </p>
+            {currentTab === 'new' && (
+              <button
+                onClick={onAddClient}
+                className="mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 flex items-center gap-2"
+              >
+                <UserPlus className="w-5 h-5" />
+                إضافة عميل جديد
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
