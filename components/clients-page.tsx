@@ -666,7 +666,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
           </DialogHeader>
 
           {/* Printable invoice */}
-          <div id="print-invoice" className="space-y-3 py-2" dir="rtl">
+          <div id="print-invoice" className="space-y-4 py-2" dir="rtl">
             {/* Shop header */}
             <div className="text-center border-b border-border pb-3">
               <p className="font-bold text-base">{shopSettings.name}</p>
@@ -684,27 +684,51 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
                 <span className="text-muted-foreground block text-xs mb-0.5">رقم الهاتف</span>
                 <span className="font-medium">{allPaymentsDialog.client?.phone || '—'}</span>
               </div>
-              {allPaymentsDialog.client?.measurements?.slice(-1).map(m => (
-                <React.Fragment key={m.id}>
-                  <div className="bg-secondary/50 rounded p-2">
-                    <span className="text-muted-foreground block text-xs mb-0.5">نوع القماش</span>
-                    <span className="font-medium">{m.fabricType || '—'}</span>
+            </div>
+
+            {/* All Orders with their details */}
+            <div className="space-y-3">
+              <p className="text-sm font-bold border-b border-border pb-1">تفاصيل الطلبات</p>
+              {allPaymentsDialog.client?.measurements?.map((m, index) => (
+                <div key={m.id} className="border border-border rounded-lg p-3 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-sm">طلب {index + 1}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      m.status === 'new' ? 'bg-blue-100 text-blue-700' :
+                      m.status === 'in-progress' ? 'bg-yellow-100 text-yellow-700' :
+                      m.status === 'ready' ? 'bg-green-100 text-green-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>{getStatusText(m.status)}</span>
                   </div>
-                  <div className="bg-secondary/50 rounded p-2">
-                    <span className="text-muted-foreground block text-xs mb-0.5">العدد</span>
-                    <span className="font-medium">{m.quantity}</span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-secondary/30 rounded p-1.5">
+                      <span className="text-muted-foreground">نوع القماش: </span>
+                      <span className="font-medium">{m.fabricType || '—'}</span>
+                    </div>
+                    <div className="bg-secondary/30 rounded p-1.5">
+                      <span className="text-muted-foreground">العدد: </span>
+                      <span className="font-medium">{m.quantity}</span>
+                    </div>
+                    <div className="bg-secondary/30 rounded p-1.5">
+                      <span className="text-muted-foreground">السعر: </span>
+                      <span className="font-medium">{m.price}</span>
+                    </div>
+                    <div className="bg-secondary/30 rounded p-1.5">
+                      <span className="text-muted-foreground">المدفوع: </span>
+                      <span className="font-medium">{m.paid}</span>
+                    </div>
+                    <div className="bg-secondary/30 rounded p-1.5 col-span-2">
+                      <span className="text-muted-foreground">المتبقي: </span>
+                      <span className="font-bold text-destructive">{m.remaining}</span>
+                    </div>
                   </div>
-                  <div className="bg-secondary/50 rounded p-2 col-span-2">
-                    <span className="text-muted-foreground block text-xs mb-0.5">إجمالي السعر</span>
-                    <span className="font-bold text-base">{m.price}</span>
-                  </div>
-                </React.Fragment>
+                </div>
               ))}
             </div>
 
             {/* Payments list */}
             <div>
-              <p className="text-xs font-bold text-muted-foreground mb-2 border-b border-border pb-1">المبالغ المُوصّلة</p>
+              <p className="text-sm font-bold border-b border-border pb-1 mb-2">المبالغ الموصّلة لجميع الطلبات</p>
               {(!allPaymentsDialog.client?.payments || allPaymentsDialog.client.payments.length === 0) ? (
                 <p className="text-center text-muted-foreground py-3 text-sm">لا توجد مبالغ موصّلة</p>
               ) : (
@@ -722,23 +746,34 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
                       </span>
                     </div>
                   ))}
-
-                  {/* Summary */}
-                  <div className="border-t-2 border-border pt-2 space-y-1">
-                    <div className="flex justify-between text-sm font-bold">
-                      <span>إجمالي الموصّل</span>
-                      <span>{allPaymentsDialog.client.payments.reduce((s, p) => s + p.amount, 0)}</span>
-                    </div>
-                    {allPaymentsDialog.client.measurements?.slice(-1).map(m => (
-                      <div key={m.id} className="flex justify-between text-sm font-bold text-destructive">
-                        <span>المتبقي</span>
-                        <span>{m.remaining}</span>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               )}
             </div>
+
+            {/* Grand Summary */}
+            {allPaymentsDialog.client && (
+              <div className="border-t-2 border-primary pt-3 space-y-2 bg-secondary/20 rounded-lg p-3">
+                <p className="text-sm font-bold text-center mb-2">الملخص الإجمالي</p>
+                <div className="flex justify-between text-sm">
+                  <span>إجمالي أسعار جميع الطلبات</span>
+                  <span className="font-bold">
+                    {allPaymentsDialog.client.measurements?.reduce((s, m) => s + (m.price || 0), 0) || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>إجمالي المبالغ الموصّلة</span>
+                  <span className="font-bold text-primary">
+                    {allPaymentsDialog.client.payments?.reduce((s, p) => s + p.amount, 0) || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm font-bold text-destructive border-t border-border pt-2">
+                  <span>إجمالي المتبقي على العميل</span>
+                  <span>
+                    {allPaymentsDialog.client.measurements?.reduce((s, m) => s + (m.remaining || 0), 0) || 0}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="flex gap-2 flex-row-reverse">
@@ -749,10 +784,13 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
                 const win = window.open('', '_blank')
                 if (!win) return
                 win.document.write(`<html dir="rtl"><head><title>فاتورة</title>
-                  <style>body{font-family:Arial,sans-serif;padding:24px;direction:rtl;max-width:400px;margin:auto}
+                  <style>body{font-family:Arial,sans-serif;padding:24px;direction:rtl;max-width:450px;margin:auto}
                   h2{text-align:center}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 0}
-                  .item{background:#f5f5f5;padding:6px 10px;border-radius:6px}.label{font-size:11px;color:#888}
-                  .val{font-weight:bold}.payment{display:flex;justify-content:space-between;border:1px solid #ddd;border-radius:6px;padding:6px 10px;margin-bottom:6px}
+                  .order{border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:12px}
+                  .order-header{display:flex;justify-content:space-between;font-weight:bold;margin-bottom:8px}
+                  .item{background:#f5f5f5;padding:6px 10px;border-radius:6px;font-size:12px}
+                  .payment{display:flex;justify-content:space-between;border:1px solid #ddd;border-radius:6px;padding:6px 10px;margin-bottom:6px}
+                  .summary{background:#f0f0f0;padding:12px;border-radius:8px;margin-top:16px}
                   .total{border-top:2px solid #333;padding-top:8px;display:flex;justify-content:space-between;font-weight:bold}
                   </style></head><body>${el.innerHTML}</body></html>`)
                 win.document.close()
