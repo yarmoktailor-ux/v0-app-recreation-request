@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react'
 import { useApp, Client, Measurement } from '@/lib/context'
+import { getMeasurementLabel, getDetailLabel } from '@/lib/measurements-labels'
 import { 
   ArrowRight, 
   Search, 
@@ -583,7 +584,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
                         <div className="grid grid-cols-3 gap-1">
                           {Object.entries(m.measurements).map(([key, val]) => val ? (
                             <div key={key} className="bg-secondary/40 rounded px-2 py-1 text-xs">
-                              <span className="text-muted-foreground">{key}: </span>
+                              <span className="text-muted-foreground">{getMeasurementLabel(key)}: </span>
                               <span className="font-medium">{val}</span>
                             </div>
                           ) : null)}
@@ -599,9 +600,9 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
                           {Object.entries(m.details).map(([key, vals]) =>
                             Array.isArray(vals) && vals.length > 0 ? (
                               <div key={key} className="flex flex-wrap gap-1">
-                                <span className="text-xs text-muted-foreground">{key}:</span>
+                                <span className="text-xs text-muted-foreground">{getDetailLabel(key)}:</span>
                                 {vals.map(v => (
-                                  <span key={v} className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5">{v}</span>
+                                  <span key={v} className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5">{getDetailLabel(v)}</span>
                                 ))}
                               </div>
                             ) : null
