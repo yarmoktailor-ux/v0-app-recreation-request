@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 import { useApp, Client, Measurement } from '@/lib/context'
 import { 
   ArrowRight, 
@@ -532,40 +532,129 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* All Measurements Dialog */}
       <Dialog open={allMeasurementsDialog.open} onOpenChange={(open) => setAllMeasurementsDialog({ ...allMeasurementsDialog, open })}>
-        <DialogContent className="bg-popover max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-popover max-h-[90vh] overflow-y-auto w-full max-w-lg">
           <DialogHeader>
-            <DialogTitle>جميع مقاسات {allMeasurementsDialog.client?.name}</DialogTitle>
+            <DialogTitle>مقاسات: {allMeasurementsDialog.client?.name}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 py-2">
+
+          {/* Printable area */}
+          <div id="print-measurements" className="space-y-4 py-2" dir="rtl">
+            {/* Shop header (print only) */}
+            <div className="hidden print:block text-center border-b pb-3 mb-3">
+              <p className="font-bold text-lg">{shopSettings.name}</p>
+              <p className="text-sm">{shopSettings.phone}</p>
+              <p className="text-sm">{shopSettings.address}</p>
+              <p className="font-bold mt-2">مقاسات العميل: {allMeasurementsDialog.client?.name}</p>
+            </div>
+
             {allMeasurementsDialog.client?.measurements.length === 0 ? (
               <p className="text-center text-muted-foreground py-4">لا توجد مقاسات</p>
             ) : (
               allMeasurementsDialog.client?.measurements.map((m, index) => (
-                <div key={m.id} className="border border-border rounded-lg p-3 space-y-1">
-                  <div className="flex justify-between items-center">
+                <div key={m.id} className="border border-border rounded-lg overflow-hidden">
+                  {/* Header */}
+                  <div className="bg-secondary flex justify-between items-center px-3 py-2">
                     <span className="font-bold text-sm">مقاس {index + 1}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      m.status === 'new' ? 'bg-blue-100 text-blue-700' :
-                      m.status === 'in-progress' ? 'bg-yellow-100 text-yellow-700' :
-                      m.status === 'ready' ? 'bg-green-100 text-green-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
-                      {getStatusText(m.status)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {m.createdAt ? new Date(m.createdAt).toLocaleDateString('ar-SA') : ''}
+                      </span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        m.status === 'new' ? 'bg-blue-100 text-blue-700' :
+                        m.status === 'in-progress' ? 'bg-yellow-100 text-yellow-700' :
+                        m.status === 'ready' ? 'bg-green-100 text-green-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>{getStatusText(m.status)}</span>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-4 text-sm text-muted-foreground">
-                    <span>نوع القماش: {m.fabricType || '—'}</span>
-                    <span>الكمية: {m.quantity}</span>
-                    <span>المبلغ: {m.price}</span>
-                    <span>المدفوع: {m.paid}</span>
-                    <span>المتبقي: {m.remaining}</span>
-                    <span>تاريخ التسليم: {m.deliveryDate ? new Date(m.deliveryDate).toLocaleDateString('ar-SA') : '—'}</span>
+
+                  <div className="p-3 space-y-3">
+                    {/* نوع القماش والعدد */}
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="bg-secondary/50 rounded p-2">
+                        <span className="text-muted-foreground block text-xs mb-0.5">نوع القماش</span>
+                        <span className="font-medium">{m.fabricType || '—'}</span>
+                      </div>
+                      <div className="bg-secondary/50 rounded p-2">
+                        <span className="text-muted-foreground block text-xs mb-0.5">العدد</span>
+                        <span className="font-medium">{m.quantity}</span>
+                      </div>
+                    </div>
+
+                    {/* المقاسات */}
+                    {m.measurements && Object.keys(m.measurements).length > 0 && (
+                      <div>
+                        <p className="text-xs font-bold text-muted-foreground mb-1 border-b border-border pb-1">المقاسات</p>
+                        <div className="grid grid-cols-3 gap-1">
+                          {Object.entries(m.measurements).map(([key, val]) => val ? (
+                            <div key={key} className="bg-secondary/40 rounded px-2 py-1 text-xs">
+                              <span className="text-muted-foreground">{key}: </span>
+                              <span className="font-medium">{val}</span>
+                            </div>
+                          ) : null)}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* تفاصيل الخياطة */}
+                    {m.details && Object.keys(m.details).length > 0 && (
+                      <div>
+                        <p className="text-xs font-bold text-muted-foreground mb-1 border-b border-border pb-1">تفاصيل الخياطة</p>
+                        <div className="space-y-1">
+                          {Object.entries(m.details).map(([key, vals]) =>
+                            Array.isArray(vals) && vals.length > 0 ? (
+                              <div key={key} className="flex flex-wrap gap-1">
+                                <span className="text-xs text-muted-foreground">{key}:</span>
+                                {vals.map(v => (
+                                  <span key={v} className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5">{v}</span>
+                                ))}
+                              </div>
+                            ) : null
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ملاحظة */}
+                    {m.notes && (
+                      <div className="text-xs text-muted-foreground border-t border-border pt-2">
+                        <span className="font-medium">ملاحظة: </span>{m.notes}
+                      </div>
+                    )}
+
+                    {/* تاريخ التسليم */}
+                    {m.deliveryDate && (
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium">موعد التسليم: </span>
+                        {new Date(m.deliveryDate).toLocaleDateString('ar-SA')}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
             )}
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="flex gap-2 flex-row-reverse">
+            <Button
+              onClick={() => {
+                const el = document.getElementById('print-measurements')
+                if (!el) return
+                const win = window.open('', '_blank')
+                if (!win) return
+                win.document.write(`<html dir="rtl"><head><title>مقاسات</title>
+                  <style>body{font-family:Arial,sans-serif;padding:20px;direction:rtl}
+                  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+                  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+                  table{width:100%;border-collapse:collapse}td,th{border:1px solid #ccc;padding:4px 8px;text-align:right}
+                  </style></head><body>${el.innerHTML}</body></html>`)
+                win.document.close()
+                win.print()
+              }}
+              className="bg-primary text-primary-foreground"
+            >
+              طباعة المقاسات
+            </Button>
             <Button variant="outline" onClick={() => setAllMeasurementsDialog({ open: false, client: null })}>
               إغلاق
             </Button>
@@ -575,36 +664,108 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* All Payments Dialog */}
       <Dialog open={allPaymentsDialog.open} onOpenChange={(open) => setAllPaymentsDialog({ ...allPaymentsDialog, open })}>
-        <DialogContent className="bg-popover max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-popover max-h-[90vh] overflow-y-auto w-full max-w-lg">
           <DialogHeader>
-            <DialogTitle>المبالغ المُوصّلة — {allPaymentsDialog.client?.name}</DialogTitle>
+            <DialogTitle>فاتورة المبالغ — {allPaymentsDialog.client?.name}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 py-2">
-            {(!allPaymentsDialog.client?.payments || allPaymentsDialog.client.payments.length === 0) ? (
-              <p className="text-center text-muted-foreground py-4">لا توجد مبالغ موصّلة</p>
-            ) : (
-              <>
-                {allPaymentsDialog.client.payments.map((p, index) => (
-                  <div key={p.id} className="flex items-center justify-between border border-border rounded-lg p-3">
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(p.date).toLocaleDateString('ar-SA')}
-                    </div>
-                    <div className="text-sm font-medium">
-                      {p.amount > 0 ? `+${p.amount}` : p.amount}
-                    </div>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-secondary">
-                      {p.type === 'initial' ? 'دفعة أولى' : p.type === 'delivery' ? 'عند التسليم' : 'تعديل'}
-                    </span>
+
+          {/* Printable invoice */}
+          <div id="print-invoice" className="space-y-3 py-2" dir="rtl">
+            {/* Shop header */}
+            <div className="text-center border-b border-border pb-3">
+              <p className="font-bold text-base">{shopSettings.name}</p>
+              <p className="text-sm text-muted-foreground">{shopSettings.phone}</p>
+              {shopSettings.address && <p className="text-xs text-muted-foreground">{shopSettings.address}</p>}
+            </div>
+
+            {/* Client info */}
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="bg-secondary/50 rounded p-2">
+                <span className="text-muted-foreground block text-xs mb-0.5">الاسم</span>
+                <span className="font-medium">{allPaymentsDialog.client?.name}</span>
+              </div>
+              <div className="bg-secondary/50 rounded p-2">
+                <span className="text-muted-foreground block text-xs mb-0.5">رقم الهاتف</span>
+                <span className="font-medium">{allPaymentsDialog.client?.phone || '—'}</span>
+              </div>
+              {allPaymentsDialog.client?.measurements?.slice(-1).map(m => (
+                <React.Fragment key={m.id}>
+                  <div className="bg-secondary/50 rounded p-2">
+                    <span className="text-muted-foreground block text-xs mb-0.5">نوع القماش</span>
+                    <span className="font-medium">{m.fabricType || '—'}</span>
                   </div>
-                ))}
-                <div className="border-t border-border pt-2 flex justify-between font-bold">
-                  <span>المجموع الكلي المُوصّل</span>
-                  <span>{allPaymentsDialog.client.payments.reduce((s, p) => s + p.amount, 0)}</span>
+                  <div className="bg-secondary/50 rounded p-2">
+                    <span className="text-muted-foreground block text-xs mb-0.5">العدد</span>
+                    <span className="font-medium">{m.quantity}</span>
+                  </div>
+                  <div className="bg-secondary/50 rounded p-2 col-span-2">
+                    <span className="text-muted-foreground block text-xs mb-0.5">إجمالي السعر</span>
+                    <span className="font-bold text-base">{m.price}</span>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+
+            {/* Payments list */}
+            <div>
+              <p className="text-xs font-bold text-muted-foreground mb-2 border-b border-border pb-1">المبالغ المُوصّلة</p>
+              {(!allPaymentsDialog.client?.payments || allPaymentsDialog.client.payments.length === 0) ? (
+                <p className="text-center text-muted-foreground py-3 text-sm">لا توجد مبالغ موصّلة</p>
+              ) : (
+                <div className="space-y-2">
+                  {allPaymentsDialog.client.payments.map((p) => (
+                    <div key={p.id} className="flex items-center justify-between border border-border rounded-lg px-3 py-2">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(p.date).toLocaleDateString('ar-SA')}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-secondary">
+                        {p.type === 'initial' ? 'دفعة أولى' : p.type === 'delivery' ? 'عند التسليم' : 'تعديل'}
+                      </span>
+                      <span className="text-sm font-semibold text-primary">
+                        {p.amount}
+                      </span>
+                    </div>
+                  ))}
+
+                  {/* Summary */}
+                  <div className="border-t-2 border-border pt-2 space-y-1">
+                    <div className="flex justify-between text-sm font-bold">
+                      <span>إجمالي الموصّل</span>
+                      <span>{allPaymentsDialog.client.payments.reduce((s, p) => s + p.amount, 0)}</span>
+                    </div>
+                    {allPaymentsDialog.client.measurements?.slice(-1).map(m => (
+                      <div key={m.id} className="flex justify-between text-sm font-bold text-destructive">
+                        <span>المتبقي</span>
+                        <span>{m.remaining}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="flex gap-2 flex-row-reverse">
+            <Button
+              onClick={() => {
+                const el = document.getElementById('print-invoice')
+                if (!el) return
+                const win = window.open('', '_blank')
+                if (!win) return
+                win.document.write(`<html dir="rtl"><head><title>فاتورة</title>
+                  <style>body{font-family:Arial,sans-serif;padding:24px;direction:rtl;max-width:400px;margin:auto}
+                  h2{text-align:center}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 0}
+                  .item{background:#f5f5f5;padding:6px 10px;border-radius:6px}.label{font-size:11px;color:#888}
+                  .val{font-weight:bold}.payment{display:flex;justify-content:space-between;border:1px solid #ddd;border-radius:6px;padding:6px 10px;margin-bottom:6px}
+                  .total{border-top:2px solid #333;padding-top:8px;display:flex;justify-content:space-between;font-weight:bold}
+                  </style></head><body>${el.innerHTML}</body></html>`)
+                win.document.close()
+                win.print()
+              }}
+              className="bg-primary text-primary-foreground"
+            >
+              طباعة الفاتورة
+            </Button>
             <Button variant="outline" onClick={() => setAllPaymentsDialog({ open: false, client: null })}>
               إغلاق
             </Button>
