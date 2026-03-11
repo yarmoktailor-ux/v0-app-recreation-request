@@ -40,6 +40,7 @@ export function HomeScreen() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState<Page>('home')
   const [editingClient, setEditingClient] = useState<string | null>(null)
+  const [addMeasurementForClient, setAddMeasurementForClient] = useState<string | null>(null)
 
   // Get clients with delivery date less than 5 days
   const urgentClients = clients.filter(client => {
@@ -67,7 +68,14 @@ export function HomeScreen() {
     return (
       <ClientsPage 
         onBack={() => setCurrentPage('home')} 
-        onAddClient={() => setCurrentPage('add-client')}
+        onAddClient={() => {
+          setAddMeasurementForClient(null)
+          setCurrentPage('add-client')
+        }}
+        onAddMeasurementForClient={(clientId) => {
+          setAddMeasurementForClient(clientId)
+          setCurrentPage('add-client')
+        }}
         onEditClient={handleEditClient}
       />
     )
@@ -79,8 +87,10 @@ export function HomeScreen() {
         onBack={() => {
           setCurrentPage('clients')
           setEditingClient(null)
+          setAddMeasurementForClient(null)
         }}
         editingClientId={editingClient}
+        prefillClientId={addMeasurementForClient}
       />
     )
   }

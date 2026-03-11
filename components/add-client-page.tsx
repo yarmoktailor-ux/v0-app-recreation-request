@@ -25,11 +25,12 @@ import { KhaleejiMeasurements } from '@/components/khaleeji-measurements'
 interface AddClientPageProps {
   onBack: () => void
   editingClientId?: string | null
+  prefillClientId?: string | null
 }
 
 type MeasurementType = 'thobe' | 'khaleeji' | 'suit'
 
-export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
+export function AddClientPage({ onBack, editingClientId, prefillClientId }: AddClientPageProps) {
   const { 
     addClient, 
     updateClient, 
@@ -101,6 +102,20 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
       }
     }
   }, [editingClientId, getClient])
+
+  // Prefill client name & phone when adding a new measurement for existing client
+  useEffect(() => {
+    if (prefillClientId && !editingClientId) {
+      const client = getClient(prefillClientId)
+      if (client) {
+        setFormData(prev => ({
+          ...prev,
+          name: client.name,
+          phone: client.phone,
+        }))
+      }
+    }
+  }, [prefillClientId, editingClientId, getClient])
 
   // Calculate totals
   const subtotal = formData.price * formData.quantity
@@ -187,13 +202,15 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
         name: formData.name,
         phone: formData.phone
       })
-      // Update or add measurement
       const client = getClient(editingClientId)
       if (client && client.measurements.length > 0) {
-        // This would update existing measurement
+        // update existing measurement
       } else {
         addMeasurement(editingClientId, measurementData)
       }
+    } else if (prefillClientId) {
+      // Adding a new measurement for an existing client
+      addMeasurement(prefillClientId, { ...measurementData, clientId: prefillClientId })
     } else {
       const newClient = addClient({
         name: formData.name,
@@ -270,7 +287,7 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
           <ArrowRight className="w-6 h-6" />
         </button>
         <h1 className="text-lg font-bold">
-          {editingClientId ? 'تعديل العميل' : 'اضافة عميل'}
+          {editingClientId ? 'تعديل العميل' : prefillClientId ? 'إضافة مقاس جديد' : 'اضافة عميل'}
         </h1>
         <button className="flex items-center gap-1 text-sm">
           <Plus className="w-4 h-4" />
@@ -314,7 +331,8 @@ export function AddClientPage({ onBack, editingClientId }: AddClientPageProps) {
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               className="border-0 bg-transparent text-foreground placeholder:text-muted-foreground"
-              autoFocus
+              readOnly={!!prefillClientId}
+              autoFocus={!prefillClientId}
             />
           </div>
 

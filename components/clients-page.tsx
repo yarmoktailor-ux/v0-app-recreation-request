@@ -33,10 +33,11 @@ import { ClientInvoice, MeasurementInvoice } from './invoice'
 interface ClientsPageProps {
   onBack: () => void
   onAddClient: () => void
+  onAddMeasurementForClient: (clientId: string) => void
   onEditClient: (clientId: string) => void
 }
 
-export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPageProps) {
+export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, onEditClient }: ClientsPageProps) {
   const { clients, deleteClient, updateMeasurementStatus, addPayment, shopSettings } = useApp()
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
@@ -75,6 +76,14 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
     open: false, 
     client: null,
     amount: '' 
+  })
+  const [allMeasurementsDialog, setAllMeasurementsDialog] = useState<{ open: boolean; client: Client | null }>({
+    open: false,
+    client: null
+  })
+  const [allPaymentsDialog, setAllPaymentsDialog] = useState<{ open: boolean; client: Client | null }>({
+    open: false,
+    client: null
   })
   const invoiceRef = useRef<HTMLDivElement>(null)
 
@@ -387,8 +396,14 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
                           <DropdownMenuItem onClick={() => openDeliverDialog(client)}>
                             تسليم المقاس للعميل
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={onAddClient}>
+                          <DropdownMenuItem onClick={() => onAddMeasurementForClient(client.id)}>
                             إضافة مقاس جديد للعميل
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setAllPaymentsDialog({ open: true, client })}>
+                            عرض جميع المبالغ التي تم توصيلها
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setAllMeasurementsDialog({ open: true, client })}>
+                            عرض جميع مقاسات العميل
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             عرض جميع المبالغ التي ��م توصيلها
@@ -510,6 +525,88 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
             </Button>
             <Button onClick={handleDelete} variant="destructive">
               نعم
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* All Measurements Dialog */}
+      <Dialog open={allMeasurementsDialog.open} onOpenChange={(open) => setAllMeasurementsDialog({ ...allMeasurementsDialog, open })}>
+        <DialogContent className="bg-popover max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>جميع مقاسات {allMeasurementsDialog.client?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            {allMeasurementsDialog.client?.measurements.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4">لا توجد مقاسات</p>
+            ) : (
+              allMeasurementsDialog.client?.measurements.map((m, index) => (
+                <div key={m.id} className="border border-border rounded-lg p-3 space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-sm">مقاس {index + 1}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      m.status === 'new' ? 'bg-blue-100 text-blue-700' :
+                      m.status === 'in-progress' ? 'bg-yellow-100 text-yellow-700' :
+                      m.status === 'ready' ? 'bg-green-100 text-green-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {getStatusText(m.status)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 text-sm text-muted-foreground">
+                    <span>نوع القماش: {m.fabricType || '—'}</span>
+                    <span>الكمية: {m.quantity}</span>
+                    <span>المبلغ: {m.price}</span>
+                    <span>المدفوع: {m.paid}</span>
+                    <span>المتبقي: {m.remaining}</span>
+                    <span>تاريخ التسليم: {m.deliveryDate ? new Date(m.deliveryDate).toLocaleDateString('ar-SA') : '—'}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAllMeasurementsDialog({ open: false, client: null })}>
+              إغلاق
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* All Payments Dialog */}
+      <Dialog open={allPaymentsDialog.open} onOpenChange={(open) => setAllPaymentsDialog({ ...allPaymentsDialog, open })}>
+        <DialogContent className="bg-popover max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>المبالغ المُوصّلة — {allPaymentsDialog.client?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            {(!allPaymentsDialog.client?.payments || allPaymentsDialog.client.payments.length === 0) ? (
+              <p className="text-center text-muted-foreground py-4">لا توجد مبالغ موصّلة</p>
+            ) : (
+              <>
+                {allPaymentsDialog.client.payments.map((p, index) => (
+                  <div key={p.id} className="flex items-center justify-between border border-border rounded-lg p-3">
+                    <div className="text-sm text-muted-foreground">
+                      {new Date(p.date).toLocaleDateString('ar-SA')}
+                    </div>
+                    <div className="text-sm font-medium">
+                      {p.amount > 0 ? `+${p.amount}` : p.amount}
+                    </div>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-secondary">
+                      {p.type === 'initial' ? 'دفعة أولى' : p.type === 'delivery' ? 'عند التسليم' : 'تعديل'}
+                    </span>
+                  </div>
+                ))}
+                <div className="border-t border-border pt-2 flex justify-between font-bold">
+                  <span>المجموع الكلي المُوصّل</span>
+                  <span>{allPaymentsDialog.client.payments.reduce((s, p) => s + p.amount, 0)}</span>
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAllPaymentsDialog({ open: false, client: null })}>
+              إغلاق
             </Button>
           </DialogFooter>
         </DialogContent>
