@@ -40,7 +40,7 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
   const { clients, deleteClient, updateMeasurementStatus, addPayment, shopSettings } = useApp()
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
-  const [currentTab, setCurrentTab] = useState<'new' | 'ready' | 'delivered'>('new')
+  const [currentTab, setCurrentTab] = useState<'new' | 'in-progress' | 'ready' | 'delivered'>('new')
   const [statusDialog, setStatusDialog] = useState<{ open: boolean; clientId: string; measurementId: string }>({ 
     open: false, 
     clientId: '', 
@@ -84,6 +84,7 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
     if (!latestMeasurement) return false
     
     if (currentTab === 'new') return latestMeasurement.status === 'new'
+    if (currentTab === 'in-progress') return latestMeasurement.status === 'in-progress'
     if (currentTab === 'ready') return latestMeasurement.status === 'ready'
     if (currentTab === 'delivered') return latestMeasurement.status === 'delivered'
     return false
@@ -268,37 +269,25 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
       </header>
 
       {/* Tabs */}
-      <div className="flex gap-2 p-4 border-b border-border bg-card overflow-x-auto">
-        <button
-          onClick={() => setCurrentTab('new')}
-          className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium transition-colors ${
-            currentTab === 'new' 
-              ? 'bg-primary text-primary-foreground' 
-              : 'bg-secondary text-foreground'
-          }`}
-        >
-          مقاسات جديدة
-        </button>
-        <button
-          onClick={() => setCurrentTab('ready')}
-          className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium transition-colors ${
-            currentTab === 'ready' 
-              ? 'bg-primary text-primary-foreground' 
-              : 'bg-secondary text-foreground'
-          }`}
-        >
-          مقاسات جاهزة
-        </button>
-        <button
-          onClick={() => setCurrentTab('delivered')}
-          className={`px-4 py-2 rounded-lg whitespace-nowrap font-medium transition-colors ${
-            currentTab === 'delivered' 
-              ? 'bg-primary text-primary-foreground' 
-              : 'bg-secondary text-foreground'
-          }`}
-        >
-          مقاسات مسلمة
-        </button>
+      <div className="flex gap-2 px-3 py-3 border-b border-border bg-card overflow-x-auto">
+        {([
+          { key: 'new',         label: 'جديدة' },
+          { key: 'in-progress', label: 'تحت العمل' },
+          { key: 'ready',       label: 'جاهزة' },
+          { key: 'delivered',   label: 'مسلمة' },
+        ] as const).map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setCurrentTab(tab.key)}
+            className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-medium transition-colors flex-shrink-0 ${
+              currentTab === tab.key
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-foreground'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Content */}
@@ -307,7 +296,10 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
           <div className="flex flex-col items-center justify-center py-20">
             <Users className="w-20 h-20 text-muted-foreground mb-4" />
             <p className="text-muted-foreground text-lg mb-2">
-              {currentTab === 'new' ? 'لا توجد مقاسات جديدة' : currentTab === 'ready' ? 'لا توجد مقاسات جاهزة' : 'لا توجد مقاسات مسلمة'}
+              {currentTab === 'new' ? 'لا توجد مقاسات جديدة'
+                : currentTab === 'in-progress' ? 'لا توجد مقاسات تحت العمل'
+                : currentTab === 'ready' ? 'لا توجد مقاسات جاهزة'
+                : 'لا توجد مقاسات مسلمة'}
             </p>
             {currentTab === 'new' && (
               <button
@@ -399,7 +391,7 @@ export function ClientsPage({ onBack, onAddClient, onEditClient }: ClientsPagePr
                             إضافة مقاس جديد للعميل
                           </DropdownMenuItem>
                           <DropdownMenuItem>
-                            عرض جميع المبالغ التي تم توصيلها
+                            عرض جميع المبالغ التي ��م توصيلها
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             عرض جميع مقاسات العميل
