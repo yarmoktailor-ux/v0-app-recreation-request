@@ -47,10 +47,11 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
     clientId: '', 
     measurementId: '' 
   })
-  const [deliverDialog, setDeliverDialog] = useState<{ open: boolean; client: Client | null; remaining: number }>({ 
+  const [deliverDialog, setDeliverDialog] = useState<{ open: boolean; client: Client | null; remaining: number; measurementId: string }>({ 
     open: false, 
     client: null, 
-    remaining: 0 
+    remaining: 0,
+    measurementId: ''
   })
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; client: Client | null }>({ 
     open: false, 
@@ -87,19 +88,17 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
   })
   const invoiceRef = useRef<HTMLDivElement>(null)
 
-  // Filter clients based on latest measurement status
-  const filteredClientsByTab = clients.filter(client => {
-    const latestMeasurement = client.measurements[client.measurements.length - 1]
-    if (!latestMeasurement) return false
-    
-    if (currentTab === 'new') return latestMeasurement.status === 'new'
-    if (currentTab === 'in-progress') return latestMeasurement.status === 'in-progress'
-    if (currentTab === 'ready') return latestMeasurement.status === 'ready'
-    if (currentTab === 'delivered') return latestMeasurement.status === 'delivered'
-    return false
-  })
+  // Build a flat list of { client, measurement } entries — one per measurement matching the current tab
+  const tabEntries: { client: Client; measurement: Measurement }[] = []
+  for (const client of clients) {
+    for (const measurement of client.measurements) {
+      if (measurement.status === currentTab) {
+        tabEntries.push({ client, measurement })
+      }
+    }
+  }
 
-  const filteredClients = filteredClientsByTab.filter(client => 
+  const filteredEntries = tabEntries.filter(({ client }) =>
     client.name.includes(searchQuery) || client.phone.includes(searchQuery)
   )
 
@@ -121,16 +120,13 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
   }
 
   const handleDeliver = (withPayment: boolean) => {
-    if (deliverDialog.client) {
+    if (deliverDialog.client && deliverDialog.measurementId) {
       const client = deliverDialog.client
-      const measurement = client.measurements.find(m => m.status !== 'delivered')
-      if (measurement) {
-        if (withPayment && deliverDialog.remaining > 0) {
-          addPayment(client.id, deliverDialog.remaining)
-        }
-        updateMeasurementStatus(client.id, measurement.id, 'delivered')
+      if (withPayment && deliverDialog.remaining > 0) {
+        addPayment(client.id, deliverDialog.remaining)
       }
-      setDeliverDialog({ open: false, client: null, remaining: 0 })
+      updateMeasurementStatus(client.id, deliverDialog.measurementId, 'delivered')
+      setDeliverDialog({ open: false, client: null, remaining: 0, measurementId: '' })
     }
   }
 
@@ -301,7 +297,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* Content */}
       <main className="p-4">
-        {filteredClients.length === 0 ? (
+        {filteredEntries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Users className="w-20 h-20 text-muted-foreground mb-4" />
             <p className="text-muted-foreground text-lg mb-2">
@@ -322,11 +318,13 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredClients.map(client => {
-              const latestMeasurement = client.measurements[client.measurements.length - 1]
+            {filteredEntries.map(({ client, measurement }) => {
+              // index of this measurement within the client's list
+              const mIndex = client.measurements.findIndex(m => m.id === measurement.id)
+              const measurementLabel = client.measurements.length > 1 ? ` — طلب ${mIndex + 1}` : ''
               return (
                 <div 
-                  key={client.id}
+                  key={`${client.id}-${measurement.id}`}
                   className="bg-card border border-border rounded-lg p-4"
                 >
                   <div className="flex items-start gap-3">
@@ -342,24 +340,20 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
                     {/* Client Info */}
                     <div className="flex-1">
-                      <h3 className="font-bold text-foreground">{client.name}</h3>
-                      {latestMeasurement && (
-                        <>
-                          {latestMeasurement.deliveryDate && (
-                            <p className="text-sm text-primary">
-                              {new Date(latestMeasurement.deliveryDate).toLocaleDateString('ar-SA')}
-                            </p>
-                          )}
-                          <p className="text-sm text-muted-foreground">
-                            ({getStatusText(latestMeasurement.status)})
-                          </p>
-                        </>
+                      <h3 className="font-bold text-foreground">{client.name}{measurementLabel}</h3>
+                      {measurement.deliveryDate && (
+                        <p className="text-sm text-primary">
+                          {new Date(measurement.deliveryDate).toLocaleDateString('ar-SA')}
+                        </p>
                       )}
+                      <p className="text-sm text-muted-foreground">
+                        ({getStatusText(measurement.status)})
+                      </p>
                     </div>
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
-                      {latestMeasurement?.status === 'delivered' && (
+                      {measurement.status === 'delivered' && (
                         <Check className="w-5 h-5 text-primary" />
                       )}
                       <button 
@@ -381,7 +375,10 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
                           <DropdownMenuItem onClick={() => onEditClient(client.id)}>
                             تعديل
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openStatusDialog(client)}>
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedStatus(measurement.status)
+                            setStatusDialog({ open: true, clientId: client.id, measurementId: measurement.id })
+                          }}>
                             نقل حالة العمل
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openInvoiceDialog(client, 'client')}>
@@ -390,10 +387,14 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
                           <DropdownMenuItem onClick={() => openInvoiceDialog(client, 'measurement')}>
                             طباعة فاتورة المقاسات
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openPaymentDialog(client)}>
+                          <DropdownMenuItem onClick={() => {
+                            setPaymentDialog({ open: true, client, amount: measurement.remaining?.toString() ?? '0' })
+                          }}>
                             توصيل المبلغ المتبقى
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openDeliverDialog(client)}>
+                          <DropdownMenuItem onClick={() => {
+                            setDeliverDialog({ open: true, client, remaining: measurement.remaining ?? 0 })
+                          }}>
                             تسليم المقاس للعميل
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => onAddMeasurementForClient(client.id)}>
@@ -403,12 +404,6 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
                             عرض جميع المبالغ التي تم توصيلها
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setAllMeasurementsDialog({ open: true, client })}>
-                            عرض جميع مقاسات العميل
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            عرض جميع المبالغ التي ��م توصيلها
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
                             عرض جميع مقاسات العميل
                           </DropdownMenuItem>
                           <DropdownMenuItem 
