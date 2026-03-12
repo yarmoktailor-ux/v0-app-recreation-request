@@ -3,8 +3,9 @@
 import React, { useState, useRef } from 'react'
 import { useApp, Client, Measurement } from '@/lib/context'
 import { getMeasurementLabel, getDetailLabel } from '@/lib/measurements-labels'
+import { downloadPDF } from '@/lib/pdf-utils' 
 import { 
-  ArrowRight, 
+  ArrowRight,
   Search, 
   UserPlus,
   Printer,
@@ -633,23 +634,10 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
           <DialogFooter className="flex gap-2 flex-row-reverse">
             <Button
-              onClick={() => {
-                const el = document.getElementById('print-measurements')
-                if (!el) return
-                const win = window.open('', '_blank')
-                if (!win) return
-                win.document.write(`<html dir="rtl"><head><title>مقاسات</title>
-                  <style>body{font-family:Arial,sans-serif;padding:20px;direction:rtl}
-                  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
-                  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-                  table{width:100%;border-collapse:collapse}td,th{border:1px solid #ccc;padding:4px 8px;text-align:right}
-                  </style></head><body>${el.innerHTML}</body></html>`)
-                win.document.close()
-                win.print()
-              }}
+              onClick={() => downloadPDF('print-measurements', `مقاسات-${allMeasurementsDialog.client?.name || 'عميل'}`)}
               className="bg-primary text-primary-foreground"
             >
-              طباعة المقاسات
+              تحميل PDF
             </Button>
             <Button variant="outline" onClick={() => setAllMeasurementsDialog({ open: false, client: null })}>
               إغلاق
@@ -778,27 +766,10 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
           <DialogFooter className="flex gap-2 flex-row-reverse">
             <Button
-              onClick={() => {
-                const el = document.getElementById('print-invoice')
-                if (!el) return
-                const win = window.open('', '_blank')
-                if (!win) return
-                win.document.write(`<html dir="rtl"><head><title>فاتورة</title>
-                  <style>body{font-family:Arial,sans-serif;padding:24px;direction:rtl;max-width:450px;margin:auto}
-                  h2{text-align:center}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 0}
-                  .order{border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:12px}
-                  .order-header{display:flex;justify-content:space-between;font-weight:bold;margin-bottom:8px}
-                  .item{background:#f5f5f5;padding:6px 10px;border-radius:6px;font-size:12px}
-                  .payment{display:flex;justify-content:space-between;border:1px solid #ddd;border-radius:6px;padding:6px 10px;margin-bottom:6px}
-                  .summary{background:#f0f0f0;padding:12px;border-radius:8px;margin-top:16px}
-                  .total{border-top:2px solid #333;padding-top:8px;display:flex;justify-content:space-between;font-weight:bold}
-                  </style></head><body>${el.innerHTML}</body></html>`)
-                win.document.close()
-                win.print()
-              }}
+              onClick={() => downloadPDF('print-invoice', `فاتورة-${allPaymentsDialog.client?.name || 'عميل'}`)}
               className="bg-primary text-primary-foreground"
             >
-              طباعة الفاتورة
+              تحميل الفاتورة
             </Button>
             <Button variant="outline" onClick={() => setAllPaymentsDialog({ open: false, client: null })}>
               إغلاق
