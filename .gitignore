@@ -8,3 +8,17 @@ node_modules/
 .next/
 .env*.local
 .DS_Store
+
+# Tauri
+src-tauri/target/
+src-tauri/Cargo.lock
+
+# Capacitor
+android/
+ios/
+capacitor.lock.json
+
+# Mobile builds
+*.apk
+*.ipa
+*.aab
