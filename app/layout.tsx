@@ -10,11 +10,23 @@ const cairo = Cairo({
 
 export const metadata: Metadata = {
   title: 'اليرموك - خياطة وتفصيل',
-  description: 'تطبيق إدارة مقاسات الخياطة والتفصيل',
+  description: 'تطبيق إدارة مقاسات الخياطة والتفصيل - يعمل بدون إنترنت',
   generator: 'v0.app',
+  manifest: '/manifest.json',
+  keywords: ['خياطة', 'تفصيل', 'مقاسات', 'إدارة'],
+  authors: [{ name: 'اليرموك' }],
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',
+    shortcut: '/logo.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'اليرموك - خياطة وتفصيل',
+  },
+  formatDetection: {
+    telephone: false,
   },
 }
 

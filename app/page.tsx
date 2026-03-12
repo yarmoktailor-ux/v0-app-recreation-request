@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { AppProvider, useApp } from '@/lib/context'
 import { LoginScreen } from '@/components/login-screen'
 import { HomeScreen } from '@/components/home-screen'
+import { PWARegister } from '@/components/pwa-register'
 
 function AppContent() {
   const { isAuthenticated } = useApp()
@@ -41,6 +42,7 @@ export default function Home() {
   return (
     <AppProvider>
       <AppContent />
+      <PWARegister />
     </AppProvider>
   )
 }
