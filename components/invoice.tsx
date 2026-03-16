@@ -18,11 +18,12 @@ export const ClientInvoice = forwardRef<HTMLDivElement, ClientInvoiceProps>(
       <div ref={ref} className="bg-white p-6 w-full max-w-md mx-auto text-black" dir="rtl">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="w-20 h-20 mx-auto mb-2 relative">
+          <div className="w-14 h-14 mx-auto mb-2 relative">
             <Image
               src={shopSettings.logo || '/logo.png'}
               alt={shopSettings.name}
               fill
+              sizes="56px"
               className="object-contain"
             />
           </div>
@@ -92,11 +93,12 @@ export const MeasurementInvoice = forwardRef<HTMLDivElement, ClientInvoiceProps>
       <div ref={ref} className="bg-white p-6 w-full max-w-md mx-auto text-black" dir="rtl">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="w-20 h-20 mx-auto mb-2 relative">
+          <div className="w-14 h-14 mx-auto mb-2 relative">
             <Image
               src={shopSettings.logo || '/logo.png'}
               alt={shopSettings.name}
               fill
+              sizes="56px"
               className="object-contain"
             />
           </div>

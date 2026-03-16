@@ -231,10 +231,10 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
               .justify-between { justify-content: space-between; }
               .justify-center { justify-content: center; }
               .block { display: block; }
-              .w-20 { width: 5rem; }
-              .h-20 { height: 5rem; }
+              .w-20 { width: 3.5rem; }
+              .h-20 { height: 3.5rem; }
               .max-w-md { max-width: 28rem; }
-              img { max-width: 100%; height: auto; object-fit: contain; }
+              img { max-width: 56px !important; max-height: 56px !important; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
               .bg-gray-100 { background: #f3f4f6; }
               .-mx-3 { margin-left: -0.75rem; margin-right: -0.75rem; }
               .-mt-3 { margin-top: -0.75rem; }
