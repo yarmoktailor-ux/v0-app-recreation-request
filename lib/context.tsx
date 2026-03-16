@@ -68,6 +68,7 @@ interface AppContextType {
   addMeasurement: (clientId: string, measurement: Omit<Measurement, 'id' | 'createdAt'>) => void
   updateMeasurement: (clientId: string, measurementId: string, measurement: Partial<Measurement>) => void
   updateMeasurementStatus: (clientId: string, measurementId: string, status: Measurement['status']) => void
+  deleteMeasurement: (clientId: string, measurementId: string) => void
   
   // Payments
   addPayment: (clientId: string, amount: number) => void
@@ -200,6 +201,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const deleteClient = (id: string) => {
     setClients(prev => prev.filter(c => c.id !== id))
+  }
+
+  const deleteMeasurement = (clientId: string, measurementId: string) => {
+    setClients(prev => prev.map(c => {
+      if (c.id === clientId) {
+        return { ...c, measurements: c.measurements.filter(m => m.id !== measurementId) }
+      }
+      return c
+    }))
   }
 
   const getClient = (id: string) => {
@@ -336,6 +346,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addMeasurement,
       updateMeasurement,
       updateMeasurementStatus,
+      deleteMeasurement,
       addPayment,
       newCount,
       inProgressCount,

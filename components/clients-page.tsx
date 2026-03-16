@@ -40,7 +40,7 @@ interface ClientsPageProps {
 }
 
 export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, onEditClient }: ClientsPageProps) {
-  const { clients, deleteClient, updateMeasurementStatus, addPayment, shopSettings } = useApp()
+  const { clients, deleteClient, deleteMeasurement, updateMeasurementStatus, addPayment, shopSettings } = useApp()
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [currentTab, setCurrentTab] = useState<'new' | 'in-progress' | 'ready' | 'delivered'>('new')
@@ -55,9 +55,10 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
     remaining: 0,
     measurementId: ''
   })
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; client: Client | null }>({ 
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; client: Client | null; measurementId: string }>({ 
     open: false, 
-    client: null 
+    client: null,
+    measurementId: ''
   })
   const [selectedStatus, setSelectedStatus] = useState<'new' | 'in-progress' | 'ready' | 'delivered'>('new')
   const [invoiceDialog, setInvoiceDialog] = useState<{ 
@@ -132,10 +133,17 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
     }
   }
 
-  const handleDelete = () => {
+  const handleDeleteMeasurement = () => {
+    if (deleteDialog.client && deleteDialog.measurementId) {
+      deleteMeasurement(deleteDialog.client.id, deleteDialog.measurementId)
+      setDeleteDialog({ open: false, client: null, measurementId: '' })
+    }
+  }
+
+  const handleDeleteClient = () => {
     if (deleteDialog.client) {
       deleteClient(deleteDialog.client.id)
-      setDeleteDialog({ open: false, client: null })
+      setDeleteDialog({ open: false, client: null, measurementId: '' })
     }
   }
 
@@ -409,7 +417,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
                             عرض جميع مقاسات العميل
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={() => setDeleteDialog({ open: true, client })}
+                            onClick={() => setDeleteDialog({ open: true, client, measurementId: measurement.id })}
                             className="text-destructive"
                           >
                             حذف
@@ -507,21 +515,41 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
-            <DialogTitle>حذف العميل</DialogTitle>
+            <DialogTitle>خيارات الحذف</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-center">
-              هل تريد حذف العميل {deleteDialog.client?.name}؟
+          <div className="py-3 space-y-2">
+            <p className="text-sm text-muted-foreground text-center mb-4">
+              ماذا تريد حذف للعميل <span className="font-bold text-foreground">{deleteDialog.client?.name}</span>؟
             </p>
+
+            {/* حذف الطلب فقط — يظهر فقط إذا كان العميل لديه أكثر من طلب */}
+            {(deleteDialog.client?.measurements?.length ?? 0) > 1 ? (
+              <button
+                onClick={handleDeleteMeasurement}
+                className="w-full text-right border border-border rounded-lg p-3 hover:bg-secondary transition-colors"
+              >
+                <p className="font-medium text-sm">حذف هذا الطلب فقط</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  سيُحذف الطلب ويبقى العميل مع بقية طلباته
+                </p>
+              </button>
+            ) : null}
+
+            <button
+              onClick={handleDeleteClient}
+              className="w-full text-right border border-destructive/40 rounded-lg p-3 hover:bg-destructive/10 transition-colors"
+            >
+              <p className="font-medium text-sm text-destructive">حذف العميل بالكامل</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                سيُحذف العميل وجميع طلباته نهائياً
+              </p>
+            </button>
           </div>
-          <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialog({ ...deleteDialog, open: false })}>
-              لا
-            </Button>
-            <Button onClick={handleDelete} variant="destructive">
-              نعم
+          <DialogFooter>
+            <Button variant="outline" className="w-full" onClick={() => setDeleteDialog({ ...deleteDialog, open: false })}>
+              إلغاء
             </Button>
           </DialogFooter>
         </DialogContent>
