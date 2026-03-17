@@ -107,10 +107,24 @@ const DEFAULT_SHOP_SETTINGS: ShopSettings = {
   logo: '/logo.png'
 }
 
+// Helper: load saved data from localStorage once
+function loadSavedData() {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem('yarmouk-app-data')
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+const saved = typeof window !== 'undefined' ? loadSavedData() : null
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [password, setPasswordState] = useState(DEFAULT_PASSWORD)
+  const [password, setPasswordState] = useState<string>(DEFAULT_PASSWORD)
   const [clients, setClients] = useState<Client[]>([])
   const [shopSettings, setShopSettings] = useState<ShopSettings>(DEFAULT_SHOP_SETTINGS)
   const [fabricTypes, setFabricTypes] = useState<string[]>([])
@@ -123,47 +137,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
     pockets: []
   })
 
-  // Mark as mounted on client
+  // Load from localStorage once on mount — BEFORE any save effect runs
   useEffect(() => {
-    setMounted(true)
+    const data = loadSavedData()
+    if (data) {
+      setPasswordState(data.password ?? DEFAULT_PASSWORD)
+      setClients(data.clients ?? [])
+      setShopSettings(data.shopSettings ?? DEFAULT_SHOP_SETTINGS)
+      setFabricTypes(data.fabricTypes ?? [])
+      setOptionLists(data.optionLists ?? {
+        neckType: [],
+        jabzor: [],
+        hand: [],
+        button: [],
+        tailoringType: [],
+        pockets: []
+      })
+    }
+    setIsLoaded(true)
   }, [])
 
-  // Load from localStorage
+  // Save to localStorage — only after initial load to avoid overwriting saved data
   useEffect(() => {
-    if (!mounted) return
-    const savedData = localStorage.getItem('yarmouk-app-data')
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData)
-        setPasswordState(data.password || DEFAULT_PASSWORD)
-        setClients(data.clients || [])
-        setShopSettings(data.shopSettings || DEFAULT_SHOP_SETTINGS)
-        setFabricTypes(data.fabricTypes || [])
-        setOptionLists(data.optionLists || {
-          neckType: [],
-          jabzor: [],
-          hand: [],
-          button: [],
-          tailoringType: [],
-          pockets: []
-        })
-      } catch {
-        // Invalid data, use defaults
-      }
-    }
-  }, [mounted])
-
-  // Save to localStorage
-  useEffect(() => {
-    if (!mounted) return
-    localStorage.setItem('yarmouk-app-data', JSON.stringify({
+    if (!isLoaded) return
+    const dataToSave = {
       password,
       clients,
       shopSettings,
       fabricTypes,
       optionLists
-    }))
-  }, [mounted, password, clients, shopSettings, fabricTypes, optionLists])
+    }
+    try {
+      localStorage.setItem('yarmouk-app-data', JSON.stringify(dataToSave))
+    } catch {
+      // Storage quota exceeded or unavailable
+    }
+  }, [isLoaded, password, clients, shopSettings, fabricTypes, optionLists])
 
   // Auth functions
   const login = (inputPassword: string) => {
