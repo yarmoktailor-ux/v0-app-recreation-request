@@ -2,6 +2,8 @@
 
 import { forwardRef } from 'react'
 import { Client, Measurement, ShopSettings } from '@/lib/context'
+import { QRCodeSVG } from 'qrcode.react'
+import { getMeasurementLabel } from '@/lib/measurements-labels'
 
 interface ClientInvoiceProps {
   client: Client
@@ -59,16 +61,8 @@ export const ClientInvoice = forwardRef<HTMLDivElement, ClientInvoiceProps>(
           </div>
         </div>
 
-        {/* QR Code */}
-        <div className="flex justify-center mb-4">
-          <QRCodeSVG 
-            value={`${shopSettings.name}\n${client.name}\n${measurement.price}`}
-            size={100}
-          />
-        </div>
-
         {/* Address */}
-        <p className="text-center text-sm text-gray-600">{shopSettings.address}</p>
+        <p className="text-center text-sm text-gray-600 border-t border-gray-200 pt-4">{shopSettings.address}</p>
       </div>
     )
   }
