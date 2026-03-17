@@ -1,9 +1,7 @@
 "use client"
 
 import { forwardRef } from 'react'
-import Image from 'next/image'
 import { Client, Measurement, ShopSettings } from '@/lib/context'
-import { QRCodeSVG } from 'qrcode.react'
 
 interface ClientInvoiceProps {
   client: Client
@@ -17,16 +15,7 @@ export const ClientInvoice = forwardRef<HTMLDivElement, ClientInvoiceProps>(
     return (
       <div ref={ref} className="bg-white p-6 w-full max-w-md mx-auto text-black" dir="rtl">
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="w-14 h-14 mx-auto mb-2 relative">
-            <Image
-              src={shopSettings.logo || '/logo.png'}
-              alt={shopSettings.name}
-              fill
-              sizes="56px"
-              className="object-contain"
-            />
-          </div>
+        <div className="text-center mb-6 border-b border-gray-300 pb-4">
           <h1 className="text-xl font-bold">{shopSettings.name}</h1>
           <p className="text-gray-600">{shopSettings.phone}</p>
         </div>
@@ -92,16 +81,7 @@ export const MeasurementInvoice = forwardRef<HTMLDivElement, ClientInvoiceProps>
     return (
       <div ref={ref} className="bg-white p-6 w-full max-w-md mx-auto text-black" dir="rtl">
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="w-14 h-14 mx-auto mb-2 relative">
-            <Image
-              src={shopSettings.logo || '/logo.png'}
-              alt={shopSettings.name}
-              fill
-              sizes="56px"
-              className="object-contain"
-            />
-          </div>
+        <div className="text-center mb-6 border-b border-gray-300 pb-4">
           <h1 className="text-xl font-bold">{shopSettings.name}</h1>
           <p className="text-gray-600">{shopSettings.phone}</p>
         </div>
