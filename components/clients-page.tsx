@@ -443,7 +443,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* Status Dialog */}
       <Dialog open={statusDialog.open} onOpenChange={(open) => setStatusDialog({ ...statusDialog, open })}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>تحديث حالة مقاس العميل</DialogTitle>
           </DialogHeader>
@@ -474,7 +474,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* Deliver Dialog */}
       <Dialog open={deliverDialog.open} onOpenChange={(open) => setDeliverDialog({ ...deliverDialog, open })}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>تسليم المقاس للعميل</DialogTitle>
           </DialogHeader>
@@ -557,7 +557,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* All Measurements Dialog */}
       <Dialog open={allMeasurementsDialog.open} onOpenChange={(open) => setAllMeasurementsDialog({ ...allMeasurementsDialog, open })}>
-        <DialogContent className="bg-popover max-h-[90vh] overflow-y-auto w-full max-w-lg">
+        <DialogContent className="bg-popover max-h-[90vh] overflow-y-auto w-full max-w-lg" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>مقاسات: {allMeasurementsDialog.client?.name}</DialogTitle>
           </DialogHeader>
@@ -676,7 +676,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* All Payments Dialog */}
       <Dialog open={allPaymentsDialog.open} onOpenChange={(open) => setAllPaymentsDialog({ ...allPaymentsDialog, open })}>
-        <DialogContent className="bg-popover max-h-[90vh] overflow-y-auto w-full max-w-lg">
+        <DialogContent className="bg-popover max-h-[90vh] overflow-y-auto w-full max-w-lg" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>فاتورة المبالغ — {allPaymentsDialog.client?.name}</DialogTitle>
           </DialogHeader>
@@ -808,7 +808,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* Payment Dialog */}
       <Dialog open={paymentDialog.open} onOpenChange={(open) => setPaymentDialog({ ...paymentDialog, open })}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>توصيل المبلغ المتبقي</DialogTitle>
           </DialogHeader>
@@ -840,7 +840,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* Invoice Dialog */}
       <Dialog open={invoiceDialog.open} onOpenChange={(open) => setInvoiceDialog({ ...invoiceDialog, open })}>
-        <DialogContent className="bg-white max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white max-w-md max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle>

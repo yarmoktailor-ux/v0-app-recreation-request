@@ -688,7 +688,7 @@ export function AddClientPage({ onBack, editingClientId, prefillClientId }: AddC
 
       {/* Add Fabric Dialog */}
       <Dialog open={showFabricDialog} onOpenChange={setShowFabricDialog}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="text-center bg-primary text-primary-foreground py-2 -mx-6 -mt-6 rounded-t-lg">
               اسم القائمة
@@ -722,7 +722,7 @@ export function AddClientPage({ onBack, editingClientId, prefillClientId }: AddC
 
       {/* Add Option Dialog */}
       <Dialog open={showOptionDialog.open} onOpenChange={(open) => setShowOptionDialog({ ...showOptionDialog, open })}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="text-center bg-primary text-primary-foreground py-2 -mx-6 -mt-6 rounded-t-lg">
               إضافة {showOptionDialog.label}
