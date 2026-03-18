@@ -107,19 +107,7 @@ const DEFAULT_SHOP_SETTINGS: ShopSettings = {
   logo: '/logo.png'
 }
 
-// Helper: load saved data from localStorage once
-function loadSavedData() {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = localStorage.getItem('yarmouk-app-data')
-    if (!raw) return null
-    return JSON.parse(raw)
-  } catch {
-    return null
-  }
-}
-
-const saved = typeof window !== 'undefined' ? loadSavedData() : null
+const STORAGE_KEY = 'yarmouk-app-data-v2'
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
@@ -137,29 +125,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     pockets: []
   })
 
-  // Load from localStorage once on mount — BEFORE any save effect runs
+  // Load from localStorage once on mount
   useEffect(() => {
-    const data = loadSavedData()
-    if (data) {
-      setPasswordState(data.password ?? DEFAULT_PASSWORD)
-      setClients(data.clients ?? [])
-      setShopSettings(data.shopSettings ?? DEFAULT_SHOP_SETTINGS)
-      setFabricTypes(data.fabricTypes ?? [])
-      setOptionLists(data.optionLists ?? {
-        neckType: [],
-        jabzor: [],
-        hand: [],
-        button: [],
-        tailoringType: [],
-        pockets: []
-      })
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      console.log('[v0] Loading data, raw exists:', !!raw)
+      if (raw) {
+        const data = JSON.parse(raw)
+        console.log('[v0] Parsed data, clients count:', data.clients?.length || 0)
+        if (data.password) setPasswordState(data.password)
+        if (data.clients && data.clients.length > 0) setClients(data.clients)
+        if (data.shopSettings) setShopSettings(data.shopSettings)
+        if (data.fabricTypes) setFabricTypes(data.fabricTypes)
+        if (data.optionLists) setOptionLists(data.optionLists)
+      }
+    } catch (e) {
+      console.log('[v0] Error loading data:', e)
     }
     setIsLoaded(true)
   }, [])
 
-  // Save to localStorage — only after initial load to avoid overwriting saved data
+  // Save to localStorage whenever data changes (but only after initial load)
   useEffect(() => {
-    if (!isLoaded) return
+    if (!isLoaded) {
+      console.log('[v0] Not saving - not loaded yet')
+      return
+    }
     const dataToSave = {
       password,
       clients,
@@ -167,10 +158,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       fabricTypes,
       optionLists
     }
+    console.log('[v0] Saving data, clients count:', clients.length)
     try {
-      localStorage.setItem('yarmouk-app-data', JSON.stringify(dataToSave))
-    } catch {
-      // Storage quota exceeded or unavailable
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave))
+      console.log('[v0] Data saved successfully')
+    } catch (e) {
+      console.log('[v0] Error saving data:', e)
     }
   }, [isLoaded, password, clients, shopSettings, fabricTypes, optionLists])
 
