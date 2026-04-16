@@ -3,8 +3,9 @@
 import React, { useState, useRef } from 'react'
 import { useApp, Client, Measurement } from '@/lib/context'
 import { getMeasurementLabel, getDetailLabel } from '@/lib/measurements-labels'
+import { downloadPDF } from '@/lib/pdf-utils' 
 import { 
-  ArrowRight, 
+  ArrowRight,
   Search, 
   UserPlus,
   Printer,
@@ -39,7 +40,7 @@ interface ClientsPageProps {
 }
 
 export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, onEditClient }: ClientsPageProps) {
-  const { clients, deleteClient, updateMeasurementStatus, addPayment, shopSettings } = useApp()
+  const { clients, deleteClient, deleteMeasurement, updateMeasurementStatus, addPayment, shopSettings } = useApp()
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [currentTab, setCurrentTab] = useState<'new' | 'in-progress' | 'ready' | 'delivered'>('new')
@@ -54,9 +55,10 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
     remaining: 0,
     measurementId: ''
   })
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; client: Client | null }>({ 
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; client: Client | null; measurementId: string }>({ 
     open: false, 
-    client: null 
+    client: null,
+    measurementId: ''
   })
   const [selectedStatus, setSelectedStatus] = useState<'new' | 'in-progress' | 'ready' | 'delivered'>('new')
   const [invoiceDialog, setInvoiceDialog] = useState<{ 
@@ -131,10 +133,17 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
     }
   }
 
-  const handleDelete = () => {
+  const handleDeleteMeasurement = () => {
+    if (deleteDialog.client && deleteDialog.measurementId) {
+      deleteMeasurement(deleteDialog.client.id, deleteDialog.measurementId)
+      setDeleteDialog({ open: false, client: null, measurementId: '' })
+    }
+  }
+
+  const handleDeleteClient = () => {
     if (deleteDialog.client) {
       deleteClient(deleteDialog.client.id)
-      setDeleteDialog({ open: false, client: null })
+      setDeleteDialog({ open: false, client: null, measurementId: '' })
     }
   }
 
@@ -222,10 +231,10 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
               .justify-between { justify-content: space-between; }
               .justify-center { justify-content: center; }
               .block { display: block; }
-              .w-20 { width: 5rem; }
-              .h-20 { height: 5rem; }
+              .w-20 { width: 3.5rem; }
+              .h-20 { height: 3.5rem; }
               .max-w-md { max-width: 28rem; }
-              img { max-width: 100%; height: auto; object-fit: contain; }
+              img { max-width: 56px !important; max-height: 56px !important; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
               .bg-gray-100 { background: #f3f4f6; }
               .-mx-3 { margin-left: -0.75rem; margin-right: -0.75rem; }
               .-mt-3 { margin-top: -0.75rem; }
@@ -408,7 +417,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
                             عرض جميع مقاسات العميل
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={() => setDeleteDialog({ open: true, client })}
+                            onClick={() => setDeleteDialog({ open: true, client, measurementId: measurement.id })}
                             className="text-destructive"
                           >
                             حذف
@@ -434,7 +443,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* Status Dialog */}
       <Dialog open={statusDialog.open} onOpenChange={(open) => setStatusDialog({ ...statusDialog, open })}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>تحديث حالة مقاس العميل</DialogTitle>
           </DialogHeader>
@@ -465,7 +474,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* Deliver Dialog */}
       <Dialog open={deliverDialog.open} onOpenChange={(open) => setDeliverDialog({ ...deliverDialog, open })}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>تسليم المقاس للعميل</DialogTitle>
           </DialogHeader>
@@ -506,21 +515,41 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
-            <DialogTitle>حذف العميل</DialogTitle>
+            <DialogTitle>خيارات الحذف</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-center">
-              هل تريد حذف العميل {deleteDialog.client?.name}؟
+          <div className="py-3 space-y-2">
+            <p className="text-sm text-muted-foreground text-center mb-4">
+              ماذا تريد حذف للعميل <span className="font-bold text-foreground">{deleteDialog.client?.name}</span>؟
             </p>
+
+            {/* حذف الطلب فقط — يظهر فقط إذا كان العميل لديه أكثر من طلب */}
+            {(deleteDialog.client?.measurements?.length ?? 0) > 1 ? (
+              <button
+                onClick={handleDeleteMeasurement}
+                className="w-full text-right border border-border rounded-lg p-3 hover:bg-secondary transition-colors"
+              >
+                <p className="font-medium text-sm">حذف هذا الطلب فقط</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  سيُحذف الطلب ويبقى العميل مع بقية طلباته
+                </p>
+              </button>
+            ) : null}
+
+            <button
+              onClick={handleDeleteClient}
+              className="w-full text-right border border-destructive/40 rounded-lg p-3 hover:bg-destructive/10 transition-colors"
+            >
+              <p className="font-medium text-sm text-destructive">حذف العميل بالكامل</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                سيُحذف العميل وجميع طلباته نهائياً
+              </p>
+            </button>
           </div>
-          <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialog({ ...deleteDialog, open: false })}>
-              لا
-            </Button>
-            <Button onClick={handleDelete} variant="destructive">
-              نعم
+          <DialogFooter>
+            <Button variant="outline" className="w-full" onClick={() => setDeleteDialog({ ...deleteDialog, open: false })}>
+              إلغاء
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -528,7 +557,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* All Measurements Dialog */}
       <Dialog open={allMeasurementsDialog.open} onOpenChange={(open) => setAllMeasurementsDialog({ ...allMeasurementsDialog, open })}>
-        <DialogContent className="bg-popover max-h-[90vh] overflow-y-auto w-full max-w-lg">
+        <DialogContent className="bg-popover max-h-[90vh] overflow-y-auto w-full max-w-lg" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>مقاسات: {allMeasurementsDialog.client?.name}</DialogTitle>
           </DialogHeader>
@@ -633,23 +662,10 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
           <DialogFooter className="flex gap-2 flex-row-reverse">
             <Button
-              onClick={() => {
-                const el = document.getElementById('print-measurements')
-                if (!el) return
-                const win = window.open('', '_blank')
-                if (!win) return
-                win.document.write(`<html dir="rtl"><head><title>مقاسات</title>
-                  <style>body{font-family:Arial,sans-serif;padding:20px;direction:rtl}
-                  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
-                  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-                  table{width:100%;border-collapse:collapse}td,th{border:1px solid #ccc;padding:4px 8px;text-align:right}
-                  </style></head><body>${el.innerHTML}</body></html>`)
-                win.document.close()
-                win.print()
-              }}
+              onClick={() => downloadPDF('print-measurements', `مقاسات-${allMeasurementsDialog.client?.name || 'عميل'}`)}
               className="bg-primary text-primary-foreground"
             >
-              طباعة المقاسات
+              تحميل PDF
             </Button>
             <Button variant="outline" onClick={() => setAllMeasurementsDialog({ open: false, client: null })}>
               إغلاق
@@ -660,7 +676,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* All Payments Dialog */}
       <Dialog open={allPaymentsDialog.open} onOpenChange={(open) => setAllPaymentsDialog({ ...allPaymentsDialog, open })}>
-        <DialogContent className="bg-popover max-h-[90vh] overflow-y-auto w-full max-w-lg">
+        <DialogContent className="bg-popover max-h-[90vh] overflow-y-auto w-full max-w-lg" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>فاتورة المبالغ — {allPaymentsDialog.client?.name}</DialogTitle>
           </DialogHeader>
@@ -778,27 +794,10 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
           <DialogFooter className="flex gap-2 flex-row-reverse">
             <Button
-              onClick={() => {
-                const el = document.getElementById('print-invoice')
-                if (!el) return
-                const win = window.open('', '_blank')
-                if (!win) return
-                win.document.write(`<html dir="rtl"><head><title>فاتورة</title>
-                  <style>body{font-family:Arial,sans-serif;padding:24px;direction:rtl;max-width:450px;margin:auto}
-                  h2{text-align:center}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 0}
-                  .order{border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:12px}
-                  .order-header{display:flex;justify-content:space-between;font-weight:bold;margin-bottom:8px}
-                  .item{background:#f5f5f5;padding:6px 10px;border-radius:6px;font-size:12px}
-                  .payment{display:flex;justify-content:space-between;border:1px solid #ddd;border-radius:6px;padding:6px 10px;margin-bottom:6px}
-                  .summary{background:#f0f0f0;padding:12px;border-radius:8px;margin-top:16px}
-                  .total{border-top:2px solid #333;padding-top:8px;display:flex;justify-content:space-between;font-weight:bold}
-                  </style></head><body>${el.innerHTML}</body></html>`)
-                win.document.close()
-                win.print()
-              }}
+              onClick={() => downloadPDF('print-invoice', `فاتورة-${allPaymentsDialog.client?.name || 'عميل'}`)}
               className="bg-primary text-primary-foreground"
             >
-              طباعة الفاتورة
+              تحميل الفاتورة
             </Button>
             <Button variant="outline" onClick={() => setAllPaymentsDialog({ open: false, client: null })}>
               إغلاق
@@ -809,7 +808,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* Payment Dialog */}
       <Dialog open={paymentDialog.open} onOpenChange={(open) => setPaymentDialog({ ...paymentDialog, open })}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>توصيل المبلغ المتبقي</DialogTitle>
           </DialogHeader>
@@ -841,7 +840,7 @@ export function ClientsPage({ onBack, onAddClient, onAddMeasurementForClient, on
 
       {/* Invoice Dialog */}
       <Dialog open={invoiceDialog.open} onOpenChange={(open) => setInvoiceDialog({ ...invoiceDialog, open })}>
-        <DialogContent className="bg-white max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white max-w-md max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle>

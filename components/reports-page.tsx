@@ -238,7 +238,7 @@ export function ReportsPage({ onBack }: ReportsPageProps) {
 
       {/* Print Dialog */}
       <Dialog open={printDialog} onOpenChange={setPrintDialog}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>طباعة التقرير</DialogTitle>
           </DialogHeader>

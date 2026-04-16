@@ -1,0 +1,56 @@
+{
+  "name": "اليرموك - خياطة وتفصيل",
+  "short_name": "اليرموك",
+  "description": "تطبيق إدارة مقاسات الخياطة والتفصيل - يعمل بدون إنترنت",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#d4af37",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/logo.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "إضافة عميل جديد",
+      "short_name": "عميل جديد",
+      "description": "إضافة عميل جديد للنظام",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

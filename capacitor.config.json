@@ -1,0 +1,25 @@
+{
+  "appId": "com.tailor.app",
+  "appName": "اليرموك - خياطة وتفصيل",
+  "webDir": ".next",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "preferredContentMode": "mobile"
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "App": {
+      "onAppUrlOpen": "true"
+    },
+    "Preferences": {
+      "group": "com.tailor.app"
+    },
+    "Filesystem": {
+      "alias": "Documents"
+    }
+  }
+}

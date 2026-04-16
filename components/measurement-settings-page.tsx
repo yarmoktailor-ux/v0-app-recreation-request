@@ -142,7 +142,7 @@ function ListPage({ title, items, onAdd, onEdit, onDelete, onBack }: ListPagePro
 
       {/* Add Dialog */}
       <Dialog open={addDialog} onOpenChange={setAddDialog}>
-        <DialogContent className="bg-white rounded-2xl">
+        <DialogContent className="bg-white rounded-2xl" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="text-right">إضافة جديد</DialogTitle>
           </DialogHeader>
@@ -166,7 +166,7 @@ function ListPage({ title, items, onAdd, onEdit, onDelete, onBack }: ListPagePro
 
       {/* Edit Dialog */}
       <Dialog open={editDialog.open} onOpenChange={(o) => setEditDialog({ ...editDialog, open: o })}>
-        <DialogContent className="bg-white rounded-2xl">
+        <DialogContent className="bg-white rounded-2xl" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="text-right">تعديل</DialogTitle>
           </DialogHeader>
@@ -189,7 +189,7 @@ function ListPage({ title, items, onAdd, onEdit, onDelete, onBack }: ListPagePro
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialog.open} onOpenChange={(o) => setDeleteDialog({ ...deleteDialog, open: o })}>
-        <DialogContent className="bg-white rounded-2xl">
+        <DialogContent className="bg-white rounded-2xl" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="text-right">حذف</DialogTitle>
           </DialogHeader>

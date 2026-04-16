@@ -312,7 +312,7 @@ export function AccountsPage({ onBack, title, type }: AccountsPageProps) {
 
         {/* Add Transaction Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="bg-background max-w-md p-0 mx-4">
+          <DialogContent className="bg-background max-w-md p-0 mx-4" aria-describedby={undefined}>
             <DialogHeader className="bg-primary text-primary-foreground p-3 rounded-t-lg">
               <DialogTitle className="text-center font-bold">اضافة عملية جديدة</DialogTitle>
             </DialogHeader>
@@ -480,7 +480,7 @@ export function AccountsPage({ onBack, title, type }: AccountsPageProps) {
 
       {/* New Account Dialog */}
       <Dialog open={newAccountDialog} onOpenChange={setNewAccountDialog}>
-        <DialogContent className="bg-background max-w-sm mx-4">
+        <DialogContent className="bg-background max-w-sm mx-4" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="text-center">إضافة حساب جديد</DialogTitle>
           </DialogHeader>

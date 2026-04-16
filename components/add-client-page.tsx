@@ -227,9 +227,10 @@ export function AddClientPage({ onBack, editingClientId, prefillClientId }: AddC
     onBack()
   }
 
-  // Render measurement input field
-  const MeasurementField = ({ label, fieldKey }: { label: string; fieldKey: string }) => (
-    <div className="bg-secondary rounded p-2">
+  // Render measurement input field - using a function that returns JSX instead of a component
+  // to prevent re-mounting on every render which causes keyboard to dismiss
+  const renderMeasurementField = (label: string, fieldKey: string) => (
+    <div key={fieldKey} className="bg-secondary rounded p-2">
       <label className="text-xs text-muted-foreground block mb-1">{label}</label>
       <Input
         type="text"
@@ -481,18 +482,18 @@ export function AddClientPage({ onBack, editingClientId, prefillClientId }: AddC
           <TabsContent value="thobe" className="mt-0 space-y-4">
             {/* Basic Measurements for Thobe */}
             <div className="grid grid-cols-3 gap-2">
-              <MeasurementField label="الطول" fieldKey="length" />
-              <MeasurementField label="الكتف" fieldKey="shoulder" />
-              <MeasurementField label="طول الكم" fieldKey="sleeve" />
+              {renderMeasurementField("الطول", "length")}
+              {renderMeasurementField("الكتف", "shoulder")}
+              {renderMeasurementField("طول الكم", "sleeve")}
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <MeasurementField label="وسع الصدر" fieldKey="chest" />
-              <MeasurementField label="الرقبة" fieldKey="neck" />
-              <MeasurementField label="وسع اليد" fieldKey="handWidth" />
+              {renderMeasurementField("وسع الصدر", "chest")}
+              {renderMeasurementField("الرقبة", "neck")}
+              {renderMeasurementField("وسع اليد", "handWidth")}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <MeasurementField label="طول الكبك" fieldKey="cuffLength" />
-              <MeasurementField label="الخطوة" fieldKey="step" />
+              {renderMeasurementField("طول الكبك", "cuffLength")}
+              {renderMeasurementField("الخطوة", "step")}
             </div>
 
             {/* Options */}
@@ -583,17 +584,17 @@ export function AddClientPage({ onBack, editingClientId, prefillClientId }: AddC
             <div className="bg-card border border-border rounded-lg p-3">
               <label className="text-sm font-bold block mb-2 text-center bg-secondary rounded py-1">مقاسات القميص</label>
               <div className="grid grid-cols-3 gap-2 mb-2">
-                <MeasurementField label="الطول" fieldKey="shirtLength" />
-                <MeasurementField label="الكتف" fieldKey="shirtShoulder" />
-                <MeasurementField label="طول الكم" fieldKey="shirtSleeve" />
+                {renderMeasurementField("الطول", "shirtLength")}
+                {renderMeasurementField("الكتف", "shirtShoulder")}
+                {renderMeasurementField("طول الكم", "shirtSleeve")}
               </div>
               <div className="grid grid-cols-3 gap-2 mb-2">
-                <MeasurementField label="وسع الصدر" fieldKey="shirtChest" />
-                <MeasurementField label="الرقبة" fieldKey="shirtNeck" />
-                <MeasurementField label="وسع اليد" fieldKey="shirtHand" />
+                {renderMeasurementField("وسع الصدر", "shirtChest")}
+                {renderMeasurementField("الرقبة", "shirtNeck")}
+                {renderMeasurementField("وسع اليد", "shirtHand")}
               </div>
               <div className="grid grid-cols-1 gap-2">
-                <MeasurementField label="البطن" fieldKey="shirtBelly" />
+                {renderMeasurementField("البطن", "shirtBelly")}
               </div>
               <div className="mt-2">
                 <Input
@@ -609,14 +610,14 @@ export function AddClientPage({ onBack, editingClientId, prefillClientId }: AddC
             <div className="bg-card border border-border rounded-lg p-3">
               <label className="text-sm font-bold block mb-2 text-center bg-secondary rounded py-1">مقاسات البنطلون</label>
               <div className="grid grid-cols-3 gap-2 mb-2">
-                <MeasurementField label="الطول" fieldKey="pantsLength" />
-                <MeasurementField label="الحزام" fieldKey="pantsBelt" />
-                <MeasurementField label="الورك" fieldKey="pantsHip" />
+                {renderMeasurementField("الطول", "pantsLength")}
+                {renderMeasurementField("الحزام", "pantsBelt")}
+                {renderMeasurementField("الورك", "pantsHip")}
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <MeasurementField label="الفخذ" fieldKey="pantsThigh" />
-                <MeasurementField label="الركبة" fieldKey="pantsKnee" />
-                <MeasurementField label="الفتحة" fieldKey="pantsOpening" />
+                {renderMeasurementField("الفخذ", "pantsThigh")}
+                {renderMeasurementField("الركبة", "pantsKnee")}
+                {renderMeasurementField("الفتحة", "pantsOpening")}
               </div>
               <div className="mt-2">
                 <Input
@@ -632,17 +633,17 @@ export function AddClientPage({ onBack, editingClientId, prefillClientId }: AddC
             <div className="bg-card border border-border rounded-lg p-3">
               <label className="text-sm font-bold block mb-2 text-center bg-secondary rounded py-1">مقاسات الكوت</label>
               <div className="grid grid-cols-3 gap-2 mb-2">
-                <MeasurementField label="الطول" fieldKey="coatLength" />
-                <MeasurementField label="الكتف" fieldKey="coatShoulder" />
-                <MeasurementField label="طول اليد" fieldKey="coatArm" />
+                {renderMeasurementField("الطول", "coatLength")}
+                {renderMeasurementField("الكتف", "coatShoulder")}
+                {renderMeasurementField("طول اليد", "coatArm")}
               </div>
               <div className="grid grid-cols-3 gap-2 mb-2">
-                <MeasurementField label="وسع الصدر" fieldKey="coatChest" />
-                <MeasurementField label="البطن" fieldKey="coatBelly" />
-                <MeasurementField label="وسع اليد" fieldKey="coatHand" />
+                {renderMeasurementField("وسع الصدر", "coatChest")}
+                {renderMeasurementField("البطن", "coatBelly")}
+                {renderMeasurementField("وسع اليد", "coatHand")}
               </div>
               <div className="grid grid-cols-1 gap-2">
-                <MeasurementField label="وسط اليد" fieldKey="coatMiddleHand" />
+                {renderMeasurementField("وسط اليد", "coatMiddleHand")}
               </div>
               <div className="mt-2">
                 <Input
@@ -658,9 +659,9 @@ export function AddClientPage({ onBack, editingClientId, prefillClientId }: AddC
             <div className="bg-card border border-border rounded-lg p-3">
               <label className="text-sm font-bold block mb-2 text-center bg-secondary rounded py-1">مقاسات اليلق</label>
               <div className="grid grid-cols-3 gap-2">
-                <MeasurementField label="الطول" fieldKey="vestLength" />
-                <MeasurementField label="الكتف" fieldKey="vestShoulder" />
-                <MeasurementField label="العرض" fieldKey="vestWidth" />
+                {renderMeasurementField("الطول", "vestLength")}
+                {renderMeasurementField("الكتف", "vestShoulder")}
+                {renderMeasurementField("العرض", "vestWidth")}
               </div>
             </div>
 
@@ -688,7 +689,7 @@ export function AddClientPage({ onBack, editingClientId, prefillClientId }: AddC
 
       {/* Add Fabric Dialog */}
       <Dialog open={showFabricDialog} onOpenChange={setShowFabricDialog}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="text-center bg-primary text-primary-foreground py-2 -mx-6 -mt-6 rounded-t-lg">
               اسم القائمة
@@ -722,7 +723,7 @@ export function AddClientPage({ onBack, editingClientId, prefillClientId }: AddC
 
       {/* Add Option Dialog */}
       <Dialog open={showOptionDialog.open} onOpenChange={(open) => setShowOptionDialog({ ...showOptionDialog, open })}>
-        <DialogContent className="bg-popover">
+        <DialogContent className="bg-popover" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="text-center bg-primary text-primary-foreground py-2 -mx-6 -mt-6 rounded-t-lg">
               إضافة {showOptionDialog.label}

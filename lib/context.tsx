@@ -68,6 +68,7 @@ interface AppContextType {
   addMeasurement: (clientId: string, measurement: Omit<Measurement, 'id' | 'createdAt'>) => void
   updateMeasurement: (clientId: string, measurementId: string, measurement: Partial<Measurement>) => void
   updateMeasurementStatus: (clientId: string, measurementId: string, status: Measurement['status']) => void
+  deleteMeasurement: (clientId: string, measurementId: string) => void
   
   // Payments
   addPayment: (clientId: string, amount: number) => void
@@ -106,10 +107,12 @@ const DEFAULT_SHOP_SETTINGS: ShopSettings = {
   logo: '/logo.png'
 }
 
+const STORAGE_KEY = 'yarmouk-app-data-v2'
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [password, setPasswordState] = useState(DEFAULT_PASSWORD)
+  const [password, setPasswordState] = useState<string>(DEFAULT_PASSWORD)
   const [clients, setClients] = useState<Client[]>([])
   const [shopSettings, setShopSettings] = useState<ShopSettings>(DEFAULT_SHOP_SETTINGS)
   const [fabricTypes, setFabricTypes] = useState<string[]>([])
@@ -122,47 +125,47 @@ export function AppProvider({ children }: { children: ReactNode }) {
     pockets: []
   })
 
-  // Mark as mounted on client
+  // Load from localStorage once on mount
   useEffect(() => {
-    setMounted(true)
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      console.log('[v0] Loading data, raw exists:', !!raw)
+      if (raw) {
+        const data = JSON.parse(raw)
+        console.log('[v0] Parsed data, clients count:', data.clients?.length || 0)
+        if (data.password) setPasswordState(data.password)
+        if (data.clients && data.clients.length > 0) setClients(data.clients)
+        if (data.shopSettings) setShopSettings(data.shopSettings)
+        if (data.fabricTypes) setFabricTypes(data.fabricTypes)
+        if (data.optionLists) setOptionLists(data.optionLists)
+      }
+    } catch (e) {
+      console.log('[v0] Error loading data:', e)
+    }
+    setIsLoaded(true)
   }, [])
 
-  // Load from localStorage
+  // Save to localStorage whenever data changes (but only after initial load)
   useEffect(() => {
-    if (!mounted) return
-    const savedData = localStorage.getItem('yarmouk-app-data')
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData)
-        setPasswordState(data.password || DEFAULT_PASSWORD)
-        setClients(data.clients || [])
-        setShopSettings(data.shopSettings || DEFAULT_SHOP_SETTINGS)
-        setFabricTypes(data.fabricTypes || [])
-        setOptionLists(data.optionLists || {
-          neckType: [],
-          jabzor: [],
-          hand: [],
-          button: [],
-          tailoringType: [],
-          pockets: []
-        })
-      } catch {
-        // Invalid data, use defaults
-      }
+    if (!isLoaded) {
+      console.log('[v0] Not saving - not loaded yet')
+      return
     }
-  }, [mounted])
-
-  // Save to localStorage
-  useEffect(() => {
-    if (!mounted) return
-    localStorage.setItem('yarmouk-app-data', JSON.stringify({
+    const dataToSave = {
       password,
       clients,
       shopSettings,
       fabricTypes,
       optionLists
-    }))
-  }, [mounted, password, clients, shopSettings, fabricTypes, optionLists])
+    }
+    console.log('[v0] Saving data, clients count:', clients.length)
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave))
+      console.log('[v0] Data saved successfully')
+    } catch (e) {
+      console.log('[v0] Error saving data:', e)
+    }
+  }, [isLoaded, password, clients, shopSettings, fabricTypes, optionLists])
 
   // Auth functions
   const login = (inputPassword: string) => {
@@ -200,6 +203,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const deleteClient = (id: string) => {
     setClients(prev => prev.filter(c => c.id !== id))
+  }
+
+  const deleteMeasurement = (clientId: string, measurementId: string) => {
+    setClients(prev => prev.map(c => {
+      if (c.id === clientId) {
+        return { ...c, measurements: c.measurements.filter(m => m.id !== measurementId) }
+      }
+      return c
+    }))
   }
 
   const getClient = (id: string) => {
@@ -336,6 +348,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addMeasurement,
       updateMeasurement,
       updateMeasurementStatus,
+      deleteMeasurement,
       addPayment,
       newCount,
       inProgressCount,
